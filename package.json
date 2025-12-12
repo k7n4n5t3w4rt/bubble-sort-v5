@@ -35,7 +35,7 @@
   },
   "scripts": {
     "dev": "node ./node_modules/vite/bin/vite.js",
-    "build": "node ./node_modules/vite/bin/vite.js build && rm -rf ./docs && mv ./dist ./docs && cp ./CNAME ./docs/CNAME && cp -r ./img ./docs/img && cp -r ./css ./docs/css",
+    "build": "node ./node_modules/vite/bin/vite.js build && rm -rf ./docs && mv ./dist ./docs && cp ./CNAME ./docs/CNAME && cp -f ./favicon.ico ./docs/favicon.ico && cp -r ./img ./docs/img && cp -r ./css ./docs/css && mkdir -p ./docs/js && cp -f ./js/plugins.js ./docs/js/plugins.js && cp -r ./js/vendor ./docs/js/",
     "browsersync:proxy": "browser-sync start --proxy 'localhost:4000' --files \".\"",
     "cypress:open": "cypress open",
     "cypress:run": "cypress run",
