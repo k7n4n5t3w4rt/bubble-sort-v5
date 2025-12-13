@@ -7,9 +7,8 @@ import { test, should } from "../server/testy.js";
 //------------------------------------------------------------------
 import * as THREE from "three";
 import pixelGrid from "../js/three-bubble-sort/actions/pixelGrid.js";
-import unsort, {
-  scheduleUnsort,
-} from "../js/three-bubble-sort/actions/unsort.js";
+import unsort from "../js/three-bubble-sort/actions/unsort.js";
+import scheduleUnsort from "../js/three-bubble-sort/actions/scheduleUnsort.js";
 
 test("unsort() makes a sorted pixelGrid no longer sorted (deterministic shuffle)", () => {
   const cols = 6;

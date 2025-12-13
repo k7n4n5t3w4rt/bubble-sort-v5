@@ -7,7 +7,7 @@ import * as THREE from "three";
 // HELPERS
 // --------------------------------------------------
 import pixelGrid from "./pixelGrid.js";
-import { scheduleUnsort } from "./unsort.js";
+import scheduleUnsort from "./scheduleUnsort.js";
 
 export default (
   reticleStuff /*: ReticleStuff */,
