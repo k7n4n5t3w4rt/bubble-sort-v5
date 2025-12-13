@@ -28,6 +28,7 @@ If it’s clearly not practical to test first (see next section), explain why br
 ## Plan-first milestone gating (new functions / behaviors)
 When a request implies a **new function / new behavior**, we run **Plan-first**:
 
+- Use the template in `server/tdd_milestone_template.md` when creating the plan.
 - First, create a **Plan-mode plan** that explicitly breaks the work into:
   - **Red** → **Review**
   - **Green** → **Review**

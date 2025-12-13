@@ -7,6 +7,7 @@ import * as THREE from "three";
 // HELPERS
 // --------------------------------------------------
 import pixelGrid from "./pixelGrid.js";
+import { scheduleUnsort } from "./unsort.js";
 
 export default (
   reticleStuff /*: ReticleStuff */,
@@ -39,6 +40,9 @@ export default (
     cubes.moving = false;
     cubes.active = true;
     cubes.currentIndex = 0;
+
+    // Grid is created in sorted order; after it’s visible, unsort it.
+    scheduleUnsort(cubes);
 
     // console.log("cubes = ", JSON.stringify(cubes));
 
