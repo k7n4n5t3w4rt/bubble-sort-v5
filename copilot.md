@@ -3,9 +3,14 @@
 ## Default development mode: TDD (where practical)
 When work is **testable at the unit level** (especially **pure functions**, reducers, calculations, parsing/formatting, state transitions, and dependency-injected logic), prefer **Kent Beck style TDD**:
 
-1. **Red**: propose/write the **minimal failing test**
-2. **Green**: write the **minimum code** to pass
-3. **Refactor**: improve clarity/duplication once green
+Use **Red → Green → Refactor**, with an explicit **stop for review** between each step:
+
+1. **Red**: write the **minimal failing test**
+2. **Review**: confirm the test is meaningful, minimal, and fails for the right reason
+3. **Green**: make the test pass in the **easiest way possible** (even if that means **hard-coding** a return value)
+4. **Review**: confirm the test is green for the intended reason and we didn’t over-build
+5. **Refactor**: implement the **quality solution** / improve design & clarity while keeping tests green
+6. **Review**: confirm behavior is preserved and code is cleaner; keep refactor small and intentional
 
 Use the **Absolute Priority Premise**: always choose the most important failing test you can make pass next.
 
