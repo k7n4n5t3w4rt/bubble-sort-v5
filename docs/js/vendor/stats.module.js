@@ -1,3 +1,4 @@
+// @ts-nocheck
 var Stats = function () {
 
 	var mode = 0;
