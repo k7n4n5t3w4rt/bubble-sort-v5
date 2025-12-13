@@ -25,6 +25,15 @@ Then:
 
 If it’s clearly not practical to test first (see next section), explain why briefly and propose the next best safety net.
 
+## Plan-first milestone gating (new functions / behaviors)
+When a request implies a **new function / new behavior**, we run **Plan-first**:
+
+- First, create a **Plan-mode plan** that explicitly breaks the work into:
+  - **Red** → **Review**
+  - **Green** → **Review**
+  - **Refactor** → **Review**
+- After the plan is accepted, execute **only the next milestone**, then **stop** for review before continuing.
+
 ## When TDD may be impractical (ok to skip/relax)
 For changes that are hard to unit-test cheaply (e.g. **Three.js rendering**, animation timing, layout/CSS-only tweaks, vendor integration quirks), do not force unit tests. Instead, prefer:
 
