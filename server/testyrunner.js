@@ -60,4 +60,16 @@ const execFactory = async (e, testies) => {
     });
 };
 
-glob("**/*.testy.js", execFactory);
+glob(
+  "**/*.testy.js",
+  {
+    // Avoid scanning huge folders (and prevent permission issues in some environments)
+    ignore: [
+      "**/node_modules/**",
+      "**/docs/**",
+      "**/dist/**",
+      "**/web_modules/**",
+    ],
+  },
+  execFactory,
+);
