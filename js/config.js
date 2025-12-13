@@ -1,8 +1,8 @@
 let NODE_ENV  = "development";
 let REMEMBER_ME  = false;
 if (typeof process === "undefined" || process.release.name !== "node") {
-  NODE_ENV = window.NODE_ENV;
-  REMEMBER_ME = window.REMEMBER_ME;
+  NODE_ENV = window.NODE_ENV ?? NODE_ENV;
+  REMEMBER_ME = window.REMEMBER_ME ?? REMEMBER_ME;
 }
 
 export default {

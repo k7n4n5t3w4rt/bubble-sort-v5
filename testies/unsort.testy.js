@@ -54,6 +54,7 @@ test("unsort() makes a sorted pixelGrid no longer sorted (deterministic shuffle)
 
 test("scheduleUnsort() schedules unsort after 10s and calls unsort via injected timer", () => {
   const calls = [];
+  /** @type {{ cb: null | ((...args:any[]) => any), delay: null | number }} */
   const captured = { cb: null, delay: null };
 
   const fakeSetTimeout = (cb, delay) => {
@@ -77,7 +78,7 @@ test("scheduleUnsort() schedules unsort after 10s and calls unsort via injected 
   should(captured.delay).be.exactly(10_000);
 
   // Trigger the scheduled callback
-  captured.cb();
+  if (captured.cb) captured.cb();
   should(calls.length).be.exactly(1);
   should(calls[0]).be.exactly(cubes);
 });

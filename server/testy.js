@@ -22,7 +22,7 @@ export const test = (message, testFunction, skip = false) => {
 
 /**
  * @param {string} message
- * @param {(arg:any) => Promise<any>} testFunction
+ * @param {() => Promise<any>} testFunction
  * @param {"skip"|boolean} [skip=false]
  */
 export const testPromise = (message, testFunction, skip = false) => {

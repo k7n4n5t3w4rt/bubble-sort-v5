@@ -83,7 +83,7 @@ export function gridDisplay()  {
   function enableShowWorkingToggleControl(config) {
     const showWorkingToggle = document.getElementById("show-working-toggle");
 
-    fromEvent(showWorkingToggle, "click") // eslint-disable-line no-undef
+    fromEvent(/** @type {any} */ (showWorkingToggle), "click") // eslint-disable-line no-undef
       .subscribe((event) => {
         event.stopPropagation();
         toggleShowWorking(config);
