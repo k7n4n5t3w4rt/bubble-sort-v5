@@ -12,6 +12,8 @@ Use **Red → Green → Refactor**, with an explicit **stop for review** between
 5. **Refactor**: implement the **quality solution** / improve design & clarity while keeping tests green
 6. **Review**: confirm behavior is preserved and code is cleaner; keep refactor small and intentional
 
+During the **Refactor** step: if you introduce a **new function**, ALWAYS put it in a **new file** (one new function per new file).
+
 Use the **Absolute Priority Premise**: always choose the most important failing test you can make pass next.
 
 ## Important interaction rule (new functions)
