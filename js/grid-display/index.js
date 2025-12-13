@@ -1,40 +1,19 @@
-// @flow
 
 // $FlowFixMe
 import { fromEvent } from "rxjs";
 
 /* eslint-env browser */
 
-/*::
-type gridDisplayObject = {
-  displayGrid: Function,
-  setCurrentCellDisplayToActive: Function,
-  clearActiveCellsDisplay: Function,
-  swapActiveCellsDisplay: Function,
-  setNewCellColour: Function,
-  getMatrix: Function,
-  getMatrixXYValues: Function,
-  setCellDisplay: Function,
-  random: Function,
-  swapCells: Function,
-  moveCell: Function,
-  getTransitionSpeed: Function,
-  moveCellBackQuickly: Function,
-  getClick: Function,
-  clearShowWorkingCellsDisplay: Function,
-  toggleShowWorking: Function,
-  enableShowWorkingToggleControl: Function
-}
-*/
 
-export function gridDisplay() /*: gridDisplayObject */ {
+
+export function gridDisplay()  {
   function displayGrid(
-    a /*: Array<Object> */,
-    cols /*: number */,
-    rows /*: number */,
-    containerId /*: string */,
-    showWorking /*: boolean */,
-  ) /*: void */ {
+    a ,
+    cols ,
+    rows ,
+    containerId ,
+    showWorking ,
+  )  {
     const BubbleSort = getGridContainer(containerId);
     while (BubbleSort.firstChild) {
       BubbleSort.removeChild(BubbleSort.firstChild);
@@ -64,9 +43,9 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function makeControlsDisplay(
-    BubbleSort /*: HTMLElement */,
-    showWorking /*: boolean */,
-  ) /*: void */ {
+    BubbleSort ,
+    showWorking ,
+  )  {
     const controls = document.createElement("div");
     controls.className = "hidden";
     controls.id = "controls";
@@ -86,9 +65,9 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function makeShowWorkingToggleControl(
-    controls /*: HTMLElement */,
-    showWorking /*: boolean */,
-  ) /*: void */ {
+    controls ,
+    showWorking ,
+  )  {
     const showWorkingToggle = document.createElement("i");
     // controls.className = 'hidden'
     showWorkingToggle.classList.add("fa");
@@ -108,22 +87,23 @@ export function gridDisplay() /*: gridDisplayObject */ {
       .subscribe((event) => {
         event.stopPropagation();
         toggleShowWorking(config);
+        const target = /** @type {HTMLElement|null} */ (event.target instanceof HTMLElement ? event.target : null);
         if (config.SHOW_WORKING) {
           window.requestAnimationFrame(() => {
-            event.target.classList.remove("fa-eye-slash");
-            event.target.classList.add("fa-eye");
+            target?.classList.remove("fa-eye-slash");
+            target?.classList.add("fa-eye");
           });
         } else {
           window.requestAnimationFrame(() => {
-            event.target.classList.remove("fa-eye");
-            event.target.classList.add("fa-eye-slash");
+            target?.classList.remove("fa-eye");
+            target?.classList.add("fa-eye-slash");
           });
         }
       });
     // body
   }
 
-  function toggleShowWorking(config /*: config */) /*: void */ {
+  function toggleShowWorking(config )  {
     config.SHOW_WORKING = !config.SHOW_WORKING;
     config.CLICK = getClick(
       config.SHOW_WORKING,
@@ -134,10 +114,10 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function setCurrentCellDisplayToActive(
-    i /*: number */,
-    containerId /*: string */,
-    showWorking /*: boolean */,
-  ) /*: void */ {
+    i ,
+    containerId ,
+    showWorking ,
+  )  {
     if (!showWorking) {
       return;
     }
@@ -145,11 +125,11 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function clearActiveCellsDisplay(
-    _1 /*: number */,
-    _2 /*: number */,
-    containerId /*: string */,
-    showWorking /*: boolean */,
-  ) /*: void */ {
+    _1 ,
+    _2 ,
+    containerId ,
+    showWorking ,
+  )  {
     if (!showWorking) {
       return;
     }
@@ -160,11 +140,11 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function swapActiveCellsDisplay(
-    _1 /*: number */,
-    _2 /*: number */,
-    containerId /*: string */,
-    showWorking /*: boolean */,
-  ) /*: void */ {
+    _1 ,
+    _2 ,
+    containerId ,
+    showWorking ,
+  )  {
     if (!showWorking) {
       return;
     }
@@ -175,9 +155,9 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function setNewCellColour(
-    movingCell /*: Object */,
-    newValue /*: number */,
-  ) /*: Object */ {
+    movingCell ,
+    newValue ,
+  )  {
     // movingCell.style.opacity = newValue / 100
     // movingCell.style.background = `rgba(0,0,0,${newValue})`
     const newColour = 255 - Math.ceil(255 * newValue);
@@ -186,9 +166,9 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function getMatrix(
-    a /*: Array<Object> */,
-    cols /*: number */,
-  ) /*: Array<Array<Object>> */ {
+    a ,
+    cols ,
+  )  {
     return a.reduce(
       (grid, currentValue, currentIndex) => {
         const lastIndex = grid.length - 1;
@@ -203,9 +183,9 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function getMatrixXYValues(
-    matrix /*: Array<Array<Object>> */,
-    cellWidth /*: number */,
-    cellHeight /*: number */,
+    matrix ,
+    cellWidth ,
+    cellHeight ,
   ) {
     return matrix.map((row, currentIndex) => {
       const y = currentIndex * cellHeight;
@@ -219,12 +199,12 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function setCellDisplay(
-    i /*: number */,
-    action /*: string */,
-    className /*: string */,
-    containerId /*: string */,
-    showWorking /*: boolean */,
-  ) /*: void */ {
+    i ,
+    action ,
+    className ,
+    containerId ,
+    showWorking ,
+  )  {
     if (!showWorking) {
       return;
     }
@@ -239,10 +219,10 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function clearCellDisplay(
-    i /*: number */,
-    className /*: string */,
-    containerId /*: string */,
-  ) /*: void */ {
+    i ,
+    className ,
+    containerId ,
+  )  {
     const currentCell = getElementById(containerId + "_" + i);
     if (!currentCell) {
       throw new Error("Element " + containerId + "_ " + i + " does not exist.");
@@ -250,30 +230,31 @@ export function gridDisplay() /*: gridDisplayObject */ {
     currentCell.classList.remove(className);
   }
 
-  function random(max /*: number */) {
+  function random(max ) {
     const min = 0;
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min)) + min;
   }
 
   function swapCells(
-    a /*: Array<Object> */,
-    _2 /*: number */,
-    _1 /*: number */,
-    containerId /*: string */,
-    constantTransitionSpeed /*: boolean */,
-    maxSecondsTransitionInterval /*: number */,
-    cols /*: number */,
-    rows /*: number */,
-  ) /*: Promise<Array<Object>> */ {
+    a ,
+    _2 ,
+    _1 ,
+    containerId ,
+    constantTransitionSpeed ,
+    maxSecondsTransitionInterval ,
+    cols ,
+    rows ,
+  )  {
     const _1CellData = a[_1];
     const _2CellData = a[_2];
-    const _1Cell = getElementById(containerId + _1CellData.id) || {};
-    const _2Cell = getElementById(containerId + _2CellData.id) || {};
-    if (!_1Cell.id || !_2Cell.id) {
+    const _1Cell = /** @type {HTMLElement|null} */ (getElementById(containerId + _1CellData.id));
+    const _2Cell = /** @type {HTMLElement|null} */ (getElementById(containerId + _2CellData.id));
+    if (!_1Cell || !_2Cell) {
       console.error(
         "There was a problem getting the DOM elements we want to swap...",
       );
+      return Promise.resolve([]);
     }
     const transitionSpeed = this.getTransitionSpeed(
       _1CellData.x,
@@ -303,18 +284,18 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function moveCell(
-    movingCell /*: HTMLElement */,
-    newX /*: number */,
-    newY /*: number */,
-    transitionSpeed /*: number */,
-  ) /*: Object */ {
+    movingCell ,
+    newX ,
+    newY ,
+    transitionSpeed ,
+  )  {
     if (!movingCell.id) {
       throw new Error("movingCell() called without an element to move");
     }
     return new Promise((resolve) => {
       movingCell.addEventListener(
         "transitionend",
-        function (e /*: Event */) {
+        function (e ) {
           // eslint-disable-line no-unused-vars
           movingCell.style.zIndex = "1";
           movingCell.removeEventListener("transitionend", resolve);
@@ -332,16 +313,16 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function getTransitionSpeed(
-    currentX /*: number */,
-    currentY /*: number */,
-    newX /*: number */,
-    newY /*: number */,
-    containerId /*: string */,
-    constantTransitionSpeed /*: boolean */,
-    maxSecondsTransitionInterval /*: number */,
-    cols /*: number */,
-    rows /*: number */,
-  ) /*: number */ {
+    currentX ,
+    currentY ,
+    newX ,
+    newY ,
+    containerId ,
+    constantTransitionSpeed ,
+    maxSecondsTransitionInterval ,
+    cols ,
+    rows ,
+  )  {
     if (constantTransitionSpeed) {
       return maxSecondsTransitionInterval;
     }
@@ -360,10 +341,10 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function moveCellBackQuickly(
-    movingCell /*: Object */,
-    oldX /*: number */,
-    oldY /*: number */,
-  ) /*: Object */ {
+    movingCell ,
+    oldX ,
+    oldY ,
+  )  {
     movingCell.style.transition = "";
     movingCell.style.top = oldY + "px";
     movingCell.style.left = oldX + "px";
@@ -371,10 +352,10 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function getClick(
-    SHOW_WORKING /*: boolean */,
-    FPS /*: number */,
-    ACCELLERATION /*: number */,
-  ) /*: number */ {
+    SHOW_WORKING ,
+    FPS ,
+    ACCELLERATION ,
+  )  {
     if (!SHOW_WORKING) {
       return 0;
     }
@@ -382,10 +363,10 @@ export function gridDisplay() /*: gridDisplayObject */ {
   }
 
   function clearShowWorkingCellsDisplay(
-    COLS /*: number */,
-    ROWS /*: number */,
-    containerId /*: string */,
-  ) /*: void */ {
+    COLS ,
+    ROWS ,
+    containerId ,
+  )  {
     for (let i = 0; i < COLS * ROWS; ++i) {
       clearCellDisplay(i, "active", containerId);
       clearCellDisplay(i, "active-min", containerId);
@@ -417,7 +398,7 @@ export function gridDisplay() /*: gridDisplayObject */ {
   // --------------------------------- //
   // HELPERS
   // --------------------------------- //
-  function getGridContainer(id /*: string */) /*: HTMLElement */ {
+  function getGridContainer(id )  {
     if (id) {
       try {
         return getElementById(id);
@@ -435,7 +416,7 @@ export function gridDisplay() /*: gridDisplayObject */ {
     }
     return body;
   }
-  function getElementById(id /*: string */) /*: HTMLElement */ {
+  function getElementById(id )  {
     const element = document.getElementById(id);
     if (!element) {
       throw new Error(`The element with id ${id} is not present in the DOM`);

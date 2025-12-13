@@ -1,4 +1,3 @@
-// @flow
 // --------------------------------------------------
 // THREE.js
 // --------------------------------------------------
@@ -15,16 +14,16 @@ import animate from "./animate.js";
 import addReticleToScene from "../calculations/addReticleToScene.js";
 
 export default (
-  cols /*: number */,
-  rows /*: number */,
-  speed /*: number */,
-  scaleX /*: number */,
-  scaleY /*: number */,
-  scaleZ /*: number */,
-) /*: void */ => {
+  cols ,
+  rows ,
+  speed ,
+  scaleX ,
+  scaleY ,
+  scaleZ ,
+)  => {
   // Initialise some objects for the global state
-  let sceneData /*: SceneData */ = {};
-  const cubes /*: Cubes */ = {
+  let sceneData  = {};
+  const cubes  = {
     pixelGridGroup: {},
     pixelGrid: [],
     moving: false,
@@ -38,20 +37,19 @@ export default (
   ARContainer.id = "ar-container";
   const bubbleSort = document.getElementById("bubble-sort");
   // document.body.appendChild(container);
-  // $FlowFixMe - Flow doesn't know about the DOM
-  bubbleSort.appendChild(ARContainer);
+  bubbleSort?.appendChild(ARContainer);
 
   // Make the scene, camera, geometry, etc.
-  const scene /*: Object */ = new THREE.Scene();
-  const camera /*: Object */ = new THREE.PerspectiveCamera(
+  const scene  = new THREE.Scene();
+  const camera  = new THREE.PerspectiveCamera(
     75,
     window.innerWidth / window.innerHeight,
     0.01,
     50,
   );
   camera.position.z = 1;
-  camera.position.y = Math.abs(parseInt(rows / 2)) * scaleY;
-  camera.position.x = Math.abs(parseInt(cols / 2)) * scaleX;
+  camera.position.y = Math.abs(Math.floor(rows / 2)) * scaleY;
+  camera.position.x = Math.abs(Math.floor(cols / 2)) * scaleX;
 
   // https://threejs.org/docs/#api/en/lights/HemisphereLight
   const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 1);
@@ -112,8 +110,7 @@ export default (
   );
 
   // document.body.appendChild(button);
-  // $FlowFixMe
-  domOverlayDiv.appendChild(button);
+  domOverlayDiv?.appendChild(button);
 
   animate(
     { stats, scene, camera, renderer, reticleStuff, cubes },

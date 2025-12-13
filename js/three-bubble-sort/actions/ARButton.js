@@ -1,9 +1,8 @@
-// @flow
 const createButton = (
-  locationString /*: string */,
-  renderer /*: function */,
-  sessionInit /*: Object */ = {},
-) /*: void | HTMLAnchorElement | HTMLButtonElement */ => {
+  locationString ,
+  renderer ,
+  sessionInit  = {},
+)  => {
   const existingButton = document.getElementById("ARButton");
   if (existingButton !== null) {
     existingButton.remove();

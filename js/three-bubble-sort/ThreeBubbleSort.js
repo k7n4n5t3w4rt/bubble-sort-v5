@@ -1,4 +1,3 @@
-// @flow
 // --------------------------------------------------
 // THREE.js
 // --------------------------------------------------
@@ -47,17 +46,8 @@ const [styles] = createStyles({
   },
 });
 
-/*::
-type Props = {
-	cols: string,
-	rows: string,
-	speed: string,
-	scalex: string,
-	scaley: string,
-	scalez: string,
-}
-*/
-export default (props /*: Props */) /*: string */ => {
+
+export default (props )  => {
   // Set some defaults for missing props
   const cols = Math.abs(parseInt(props.cols) || 5);
   const rows = Math.abs(parseInt(props.rows) || 4);
@@ -66,7 +56,7 @@ export default (props /*: Props */) /*: string */ => {
   const scaleY = Math.abs(Math.floor(parseFloat(props.scaley)) || 10);
   const scaleZ = Math.abs(Math.floor(parseFloat(props.scalez)) || 10);
 
-  const [state /*: AppState */, dispatch] = useReducer(AppReducer, {
+  const [state , dispatch] = useReducer(AppReducer, {
     cols,
     rows,
     speed,

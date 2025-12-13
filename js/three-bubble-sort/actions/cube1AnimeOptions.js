@@ -1,16 +1,15 @@
-// @flow
 
 export default (
-  cube1 /*: Cube */,
-  cube2 /*: Cube */,
-  speed /*: number */,
-  scaleZ /*: number */,
-  movingCube1 /*: boolean */,
-  movingCube2 /*: boolean */,
-  cubes /*: Cubes */,
-  nextIndex /*: number */,
-  currentIndex /*: number */,
-) /*: Object */ => {
+  cube1 ,
+  cube2 ,
+  speed ,
+  scaleZ ,
+  movingCube1 ,
+  movingCube2 ,
+  cubes ,
+  nextIndex ,
+  currentIndex ,
+)  => {
   return {
     targets: [cube1.position],
     x: [
@@ -41,7 +40,7 @@ export default (
     ],
     delay: 500,
     easing: "easeInOutCirc",
-    complete: (anim /*: any */) /*: Cubes | void */ => {
+    complete: (anim )  => {
       // Move cube1
       movingCube1 = false;
       if (movingCube2 === false) {

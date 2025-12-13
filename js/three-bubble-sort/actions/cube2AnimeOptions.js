@@ -1,17 +1,16 @@
-// @flow
 
 export default (
-  cube1 /*: Cube */,
-  cube2 /*: Cube */,
-  speed /*: number */,
-  scaleZ /*: number */,
-  movingCube1 /*: boolean */,
-  movingCube2 /*: boolean */,
-  cubes /*: Cubes */,
-  nextIndex /*: number */,
-  currentIndex /*: number */,
-  cube1StartPos /*: {y: number,z: number,} */,
-) /*: Object */ => {
+  cube1 ,
+  cube2 ,
+  speed ,
+  scaleZ ,
+  movingCube1 ,
+  movingCube2 ,
+  cubes ,
+  nextIndex ,
+  currentIndex ,
+  cube1StartPos ,
+)  => {
   return {
     targets: [cube2.position],
     x: [
@@ -30,7 +29,7 @@ export default (
     y: [{ value: cube1StartPos.y, duration: 1000 * speed, delay: 0 }],
     delay: 500,
     easing: "cubicBezier(.5, .05, .1, .3)",
-    complete: (anim) /*: Cubes | void */ => {
+    complete: (anim)  => {
       //   completeLogEl.value = 'completed : ' + anim.completed;
       movingCube2 = false;
       if (movingCube1 === false) {

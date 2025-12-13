@@ -1,4 +1,3 @@
-// @flow
 // --------------------------------------------------
 // THREE.js
 // --------------------------------------------------
@@ -13,8 +12,8 @@ export default (
     scene,
     camera,
     renderer,
-  } /*: {stats: Object, scene: Object, camera: Object, renderer: Object} */,
-) /*: ReticleStuff */ => {
+  } ,
+)  => {
   // const { stats, scene, camera, renderer, reticleStuff, cubes } = sceneData;
 
   const reticleStuff = {};

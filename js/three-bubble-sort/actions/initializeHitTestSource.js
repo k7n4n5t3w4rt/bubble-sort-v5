@@ -1,4 +1,3 @@
-// @flow
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
@@ -6,7 +5,7 @@
 // This function gets called just once to initialize a hitTestSource
 // The purpose of this function is to get a) a hit test source and b) a reference space
 
-export default async (sceneData /*: SceneData */) /*: Promise<SceneData> */ => {
+export default async (sceneData )  => {
   const { stats, scene, camera, renderer, reticleStuff, cubes } = sceneData;
   const session = renderer.xr.getSession();
 

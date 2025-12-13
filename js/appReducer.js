@@ -1,9 +1,8 @@
-// @flow
 
 export default (
-  state /*: {} */,
-  action /*: { type: string, payload: Object } */,
-) /*: {} */ => {
+  state ,
+  action ,
+)  => {
   switch (action.type) {
     case "CHANGE_PARAM":
       return {

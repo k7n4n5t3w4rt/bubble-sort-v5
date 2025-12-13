@@ -1,4 +1,3 @@
-// @flow
 // --------------------------------------------------
 // THREE.js
 // --------------------------------------------------
@@ -10,16 +9,16 @@ import pixelGrid from "./pixelGrid.js";
 import scheduleUnsort from "./scheduleUnsort.js";
 
 export default (
-  reticleStuff /*: ReticleStuff */,
-  cubes /*: Cubes */,
-  cols /*: number */,
-  rows /*: number */,
-  scaleX /*: number */,
-  scaleY /*: number */,
-  scaleZ /*: number */,
-  scene /*: Object */,
-  camera /*: Object */,
-) /*: () => void */ => () /*: void */ => {
+  reticleStuff ,
+  cubes ,
+  cols ,
+  rows ,
+  scaleX ,
+  scaleY ,
+  scaleZ ,
+  scene ,
+  camera ,
+)  => ()  => {
   if (reticleStuff.reticle.visible) {
     reticleStuff.active = false;
   }

@@ -1,4 +1,3 @@
-// @flow
 import conf from "./config.js";
 import { createContext } from "preact";
 import { useReducer } from "preact/hooks";
@@ -13,7 +12,7 @@ const AppContext = createContext([{}, () => {}]);
 const reducer = (state, action) =>
   // https://www.pika.dev/npm/@vve/immer
   produce(state, (draft) => {
-    let count /*: number */;
+    let count ;
     if (action.type === "add") {
       count = state.count || action.payload;
       count++;
@@ -29,12 +28,8 @@ const reducer = (state, action) =>
     }
   });
 
-/*::
-type Props = {
-	children: Array<function>;
-};
-*/
-const AppProvider /*: function */ = (props /*: Props */) => {
+
+const AppProvider  = (props ) => {
   const [state, dispatch] = useReducer(reducer, {});
 
   // Browser only
@@ -44,7 +39,7 @@ const AppProvider /*: function */ = (props /*: Props */) => {
       //
       // Load data from stateStorage
       // https://developer.mozilla.org/en-US/docs/Web/API/Storage
-      let sessionStateString /*: string | null | typeof undefined */ = stateStorage.getItem(
+      let sessionStateString  = stateStorage.getItem(
         "state",
         state.rememberme,
       );

@@ -1,4 +1,3 @@
-// @flow
 import { h } from "preact";
 import Router from "preact-router";
 import { html } from "htm/preact";
@@ -10,12 +9,8 @@ const finishCounter = {
   COUNT: 0,
 };
 
-/*::
-type Props = {
-  url: string
-};
-*/
-const App /*: function */ = (props /*: Props */) => {
+
+const App  = (props ) => {
   return html`
     <${AppProvider} >
       <${Router} url="${props.url}">

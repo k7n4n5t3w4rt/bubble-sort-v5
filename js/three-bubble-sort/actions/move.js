@@ -1,4 +1,3 @@
-// @flow
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
@@ -6,11 +5,11 @@ import cube1AnimeOptions from "./cube1AnimeOptions.js";
 import cube2AnimeOptions from "./cube2AnimeOptions.js";
 
 const move = (
-  cubes /*: Cubes */,
-  speed /*: number */,
-  scaleZ /*: number */,
-  anime /*: function */,
-) /*: Cubes */ => {
+  cubes ,
+  speed ,
+  scaleZ ,
+  anime ,
+)  => {
   // NOTE:
   // This might not be very clear so:
   //
@@ -20,9 +19,9 @@ const move = (
   //
   //		/js/three-bubble-sort/actions/pixelGrid.js (Line 34)
   //
-  let movingCube1 /*: boolean */ = true;
-  let movingCube2 /*: boolean */ = true;
-  const currentIndex /*: number */ = cubes.currentIndex;
+  let movingCube1  = true;
+  let movingCube2  = true;
+  const currentIndex  = cubes.currentIndex;
   const nextIndex = cubes.currentIndex + 1;
   const cube1 = cubes.pixelGrid[currentIndex];
   const cube2 = cubes.pixelGrid[nextIndex];

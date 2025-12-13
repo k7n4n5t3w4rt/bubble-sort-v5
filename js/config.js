@@ -1,6 +1,5 @@
-// @flow
-let NODE_ENV /*: string */ = "development";
-let REMEMBER_ME /*: boolean */ = false;
+let NODE_ENV  = "development";
+let REMEMBER_ME  = false;
 if (typeof process === "undefined" || process.release.name !== "node") {
   NODE_ENV = window.NODE_ENV;
   REMEMBER_ME = window.REMEMBER_ME;

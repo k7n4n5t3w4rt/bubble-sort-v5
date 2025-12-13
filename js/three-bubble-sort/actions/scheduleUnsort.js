@@ -1,20 +1,30 @@
-// @flow
 
 import unsort from "./unsort.js";
 
 /**
- * Schedule unsort to run after a delay. Timer functions are injectable for tests.
+ * @typedef {Object} ScheduleUnsortOptions
+ * @property {number} [delayMs]
+ * @property {(cb: (...args:any[]) => void, delayMs: number) => any} [setTimeoutFn]
+ * @property {(id: any) => void} [clearTimeoutFn]
+ * @property {(cubes: any) => any} [unsortFn]
  */
-export const scheduleUnsort = (
-    cubes /*: any */,
-    {
+
+/**
+ * Schedule unsort to run after a delay. Timer functions are injectable for tests.
+ *
+ * @param {any} cubes
+ * @param {ScheduleUnsortOptions} [options]
+ * @returns {any}
+ */
+export const scheduleUnsort = (cubes, options = {}) => {
+    if (!cubes) return null;
+
+    const {
         delayMs = 10_000,
         setTimeoutFn = setTimeout,
         clearTimeoutFn = clearTimeout,
         unsortFn,
-    } /*: any */ = {},
-) /*: any */ => {
-    if (!cubes) return null;
+    } = options;
 
     if (cubes.unsortTimeoutId != null && typeof clearTimeoutFn === "function") {
         clearTimeoutFn(cubes.unsortTimeoutId);

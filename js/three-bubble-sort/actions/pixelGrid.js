@@ -1,4 +1,3 @@
-// @flow
 // --------------------------------------------------
 // THREE.js
 // --------------------------------------------------
@@ -8,17 +7,17 @@ import * as THREE from "three";
 // --------------------------------------------------
 
 export default (
-  cols /*: number */,
-  rows /*: number */,
-  scaleXm /*: number */,
-  scaleYm /*: number */,
-  scaleZm /*: number */,
-  scene /*: Object */,
-  reticleStuff /*: Object */,
-) /*: {pixelGridGroup:Object, pixelGridCubes:Array<Cube>} */ => {
-  const scaleX /*: number */ = scaleXm / 100;
-  const scaleY /*: number */ = scaleYm / 100;
-  const scaleZ /*: number */ = scaleZm / 100;
+  cols ,
+  rows ,
+  scaleXm ,
+  scaleYm ,
+  scaleZm ,
+  scene ,
+  reticleStuff ,
+)  => {
+  const scaleX  = scaleXm / 100;
+  const scaleY  = scaleYm / 100;
+  const scaleZ  = scaleZm / 100;
   //create a group and add the two cubes
   //These cubes can now be rotated / scaled etc as a group
   const pixelGridGroup = new THREE.Group();
@@ -26,14 +25,14 @@ export default (
   // Pre-generate and sort values so the grid starts "already sorted"
   // according to the comparison rule used in `actions/move.js`:
   // swap when left > right => sorted is ascending (non-decreasing) in array order.
-  const totalCells /*: number */ = rows * cols;
-  const sortedValues /*: Array<number> */ = Array.from(
+  const totalCells  = rows * cols;
+  const sortedValues  = Array.from(
     { length: totalCells },
     () => 255 - Math.ceil(255 * Math.random()),
   ).sort((a, b) => a - b);
 
-  const pixelGridCubes /*: Array<Cube> */ = [];
-  let valueIndex /*: number */ = 0;
+  const pixelGridCubes  = [];
+  let valueIndex  = 0;
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
       const cellColour = sortedValues[valueIndex++];

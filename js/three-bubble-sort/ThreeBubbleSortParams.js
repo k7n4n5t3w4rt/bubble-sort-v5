@@ -1,4 +1,3 @@
-// @flow
 // --------------------------------------------------
 // THREE.js
 // --------------------------------------------------
@@ -53,41 +52,31 @@ rawStyles({
     textShadow: "2px 2px 2px grey",
   },
   ["input[type=text]"]: {
-    boxSizing: "border-box !important",
-    backgroundColor: "white !important",
-    padding: "0.5rem !important",
+    boxSizing: "border-box",
+    backgroundColor: "white",
+    padding: "0.5rem",
   },
 });
 
-/*::
-type Props = {
-	cols: number,
-	rows: number,
-	speed: number,
-	scaleX: number,
-	scaleY: number,
-	scaleZ: number,
-	dispatch: function
-}
-*/
-export default (props /*: Props */) /*: string */ => {
+
+export default (props )  => {
   // Set some defaults for missing props
-  const cols /*: number */ = props.cols;
-  const rows /*: number */ = props.rows;
-  const speed /*: number */ = props.speed;
-  const scaleX /*: number */ = props.scaleX;
-  const scaleY /*: number */ = props.scaleY;
-  const scaleZ /*: number */ = props.scaleZ;
-  const dispatch /*: function */ = props.dispatch;
+  const cols  = props.cols;
+  const rows  = props.rows;
+  const speed  = props.speed;
+  const scaleX  = props.scaleX;
+  const scaleY  = props.scaleY;
+  const scaleZ  = props.scaleZ;
+  const dispatch  = props.dispatch;
 
   useEffect(() => {});
 
   const changeParam = (
-    dispatch /*: function */,
-    param /*: string */,
-  ) /*: function */ => (
-    e /*: SyntheticInputEvent<HTMLInputElement> */,
-  ) /*: void */ => {
+    dispatch ,
+    param ,
+  )  => (
+    e ,
+  )  => {
     dispatch({
       type: "CHANGE_PARAM",
       payload: { param, value: e.target.value },

@@ -1,4 +1,3 @@
-// @flow
 // --------------------------------------------------
 // THREE.js
 // --------------------------------------------------
@@ -11,18 +10,18 @@ import initializeHitTestSource from "./initializeHitTestSource.js";
 import anime from "animejs/lib/anime.es.js";
 
 export default (
-  sceneData /*: SceneData */,
-  speed /*: number */,
-  scaleXm /*: number */,
-  scaleYm /*: number */,
-  scaleZm /*: number */,
-  cols /*: number */,
-  rows /*: number */,
-) /*: () => Promise<any>  */ => {
-  return async (timestamp, frame) /*: Promise<any> */ => {
-    const scaleX /*: number */ = scaleXm / 100;
-    const scaleY /*: number */ = scaleYm / 100;
-    const scaleZ /*: number */ = scaleZm / 100;
+  sceneData ,
+  speed ,
+  scaleXm ,
+  scaleYm ,
+  scaleZm ,
+  cols ,
+  rows ,
+)  => {
+  return async (timestamp, frame)  => {
+    const scaleX  = scaleXm / 100;
+    const scaleY  = scaleYm / 100;
+    const scaleZ  = scaleZm / 100;
     if (frame) {
       // 1. create a hit test source once and keep it for all the frames
       // this gets called only once
