@@ -12,7 +12,19 @@ import animate from "./animate.js";
 import addReticleToScene from "../calculations/addReticleToScene.js";
 import getOrCreateRenderContainer from "./getOrCreateRenderContainer.js";
 
-export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
+export default (renderer, params) => {
+  const {
+    cols,
+    rows,
+    speed,
+    scaleX,
+    scaleY,
+    scaleZ,
+    diffuseTargetRatio,
+    diffuseMinMaxMs,
+    diffuseSwapsPerTick,
+    diffuseNeighborRadius,
+  } = params || {};
   // Stop any existing animation loop before switching modes.
   renderer.setAnimationLoop(null);
 
@@ -45,7 +57,7 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
 
   const reticleStuff = addReticleToScene({ stats, scene, camera, renderer });
 
-  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number, passHadSwap?: boolean, sortStartMs?: number, sortEndMs?: number, sortRunId?: number, unsortTimeoutId?: any, setTimeoutFn?: any, clearTimeoutFn?: any, randomFn?: any, logFn?: any, hasGrid?: boolean }} */
+  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number, passHadSwap?: boolean, sortStartMs?: number, sortEndMs?: number, sortRunId?: number, unsortTimeoutId?: any, setTimeoutFn?: any, clearTimeoutFn?: any, diffusing?: boolean, diffuseIntervalId?: any, diffuseRunToken?: number, setIntervalFn?: any, clearIntervalFn?: any, nowFn?: any, diffuseTargetRatio?: number, diffuseMinMaxMs?: number, diffuseSwapsPerTick?: number, diffuseNeighborRadius?: number, gridCols?: number, gridRows?: number, randomFn?: any, logFn?: any, hasGrid?: boolean }} */
   const cubes = {
     pixelGridGroup: {},
     pixelGrid: /** @type {any[]} */ ([]),
@@ -54,6 +66,18 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
     currentIndex: 0,
   };
   cubes.logFn = console.log;
+  if (diffuseTargetRatio != null && Number.isFinite(Number(diffuseTargetRatio))) {
+    cubes.diffuseTargetRatio = Math.max(0, Math.min(1, Number(diffuseTargetRatio)));
+  }
+  if (diffuseMinMaxMs != null && Number.isFinite(Number(diffuseMinMaxMs))) {
+    cubes.diffuseMinMaxMs = Math.max(0, Number(diffuseMinMaxMs));
+  }
+  if (diffuseSwapsPerTick != null && Number.isFinite(Number(diffuseSwapsPerTick))) {
+    cubes.diffuseSwapsPerTick = Math.max(0, Number(diffuseSwapsPerTick));
+  }
+  if (diffuseNeighborRadius != null && Number.isFinite(Number(diffuseNeighborRadius))) {
+    cubes.diffuseNeighborRadius = Math.max(1, Math.floor(Number(diffuseNeighborRadius)));
+  }
 
   const controller = renderer.xr.getController(0);
   controller.addEventListener(

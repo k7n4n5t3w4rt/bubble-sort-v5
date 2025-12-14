@@ -30,7 +30,19 @@ const makeNonARReticleStuff = () => ({
   localSpace: null,
 });
 
-export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
+export default (renderer, params) => {
+  const {
+    cols,
+    rows,
+    speed,
+    scaleX,
+    scaleY,
+    scaleZ,
+    diffuseTargetRatio,
+    diffuseMinMaxMs,
+    diffuseSwapsPerTick,
+    diffuseNeighborRadius,
+  } = params || {};
   // Stop any existing animation loop before switching modes.
   renderer.setAnimationLoop(null);
 
@@ -65,7 +77,7 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
 
   const reticleStuff = makeNonARReticleStuff();
 
-  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number, passHadSwap?: boolean, sortStartMs?: number, sortEndMs?: number, sortRunId?: number, unsortTimeoutId?: any, setTimeoutFn?: any, clearTimeoutFn?: any, diffusing?: boolean, diffuseIntervalId?: any, setIntervalFn?: any, clearIntervalFn?: any, nowFn?: any, diffuseMsPerCube?: number, gridCols?: number, gridRows?: number, randomFn?: any, logFn?: any }} */
+  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number, passHadSwap?: boolean, sortStartMs?: number, sortEndMs?: number, sortRunId?: number, unsortTimeoutId?: any, setTimeoutFn?: any, clearTimeoutFn?: any, diffusing?: boolean, diffuseIntervalId?: any, diffuseRunToken?: number, setIntervalFn?: any, clearIntervalFn?: any, nowFn?: any, diffuseTargetRatio?: number, diffuseMinMaxMs?: number, diffuseSwapsPerTick?: number, diffuseNeighborRadius?: number, gridCols?: number, gridRows?: number, randomFn?: any, logFn?: any }} */
   const cubes = {
     pixelGridGroup: {},
     pixelGrid: /** @type {any[]} */ ([]),
@@ -89,6 +101,18 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
   cubes.pixelGridGroup = pixelGridGroup;
   cubes.gridCols = cols;
   cubes.gridRows = rows;
+  if (diffuseTargetRatio != null && Number.isFinite(Number(diffuseTargetRatio))) {
+    cubes.diffuseTargetRatio = Math.max(0, Math.min(1, Number(diffuseTargetRatio)));
+  }
+  if (diffuseMinMaxMs != null && Number.isFinite(Number(diffuseMinMaxMs))) {
+    cubes.diffuseMinMaxMs = Math.max(0, Number(diffuseMinMaxMs));
+  }
+  if (diffuseSwapsPerTick != null && Number.isFinite(Number(diffuseSwapsPerTick))) {
+    cubes.diffuseSwapsPerTick = Math.max(0, Number(diffuseSwapsPerTick));
+  }
+  if (diffuseNeighborRadius != null && Number.isFinite(Number(diffuseNeighborRadius))) {
+    cubes.diffuseNeighborRadius = Math.max(1, Math.floor(Number(diffuseNeighborRadius)));
+  }
   cubes.moving = false;
   // Do not start sorting until after the initial unsort runs.
   cubes.active = false;
@@ -103,10 +127,15 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
 
       unsortDiffuse(cs, {
         targetRatio:
-          cs && typeof cs.diffuseTargetRatio === "number" ? cs.diffuseTargetRatio : 0.8,
-        // Let unsortDiffuse scale timeout by cube count; allow override via cs.diffuseMsPerCube.
-        msPerCube:
-          cs && typeof cs.diffuseMsPerCube === "number" ? cs.diffuseMsPerCube : undefined,
+          cs && typeof cs.diffuseTargetRatio === "number" ? cs.diffuseTargetRatio : 0.5,
+        minMaxMs:
+          cs && typeof cs.diffuseMinMaxMs === "number" ? cs.diffuseMinMaxMs : undefined,
+        swapsPerTick:
+          cs && typeof cs.diffuseSwapsPerTick === "number" && cs.diffuseSwapsPerTick > 0
+            ? cs.diffuseSwapsPerTick
+            : undefined,
+        neighborRadius:
+          cs && typeof cs.diffuseNeighborRadius === "number" ? cs.diffuseNeighborRadius : undefined,
         randomFn: cs && typeof cs.randomFn === "function" ? cs.randomFn : Math.random,
         setIntervalFn: cs && typeof cs.setIntervalFn === "function" ? cs.setIntervalFn : setInterval,
         clearIntervalFn:

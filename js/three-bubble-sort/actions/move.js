@@ -45,10 +45,15 @@ const unsortAndStartSorting = (cubes) => {
   // Allow deterministic tests by injecting timer + RNG sources.
   unsortDiffuse(cubes, {
     targetRatio:
-      cubes && typeof cubes.diffuseTargetRatio === "number" ? cubes.diffuseTargetRatio : 0.8,
-    // Let unsortDiffuse scale timeout by cube count; allow override via cubes.diffuseMsPerCube.
-    msPerCube:
-      cubes && typeof cubes.diffuseMsPerCube === "number" ? cubes.diffuseMsPerCube : undefined,
+      cubes && typeof cubes.diffuseTargetRatio === "number" ? cubes.diffuseTargetRatio : 0.5,
+    minMaxMs:
+      cubes && typeof cubes.diffuseMinMaxMs === "number" ? cubes.diffuseMinMaxMs : undefined,
+    swapsPerTick:
+      cubes && typeof cubes.diffuseSwapsPerTick === "number" && cubes.diffuseSwapsPerTick > 0
+        ? cubes.diffuseSwapsPerTick
+        : undefined,
+    neighborRadius:
+      cubes && typeof cubes.diffuseNeighborRadius === "number" ? cubes.diffuseNeighborRadius : undefined,
     randomFn: cubes && typeof cubes.randomFn === "function" ? cubes.randomFn : Math.random,
     setIntervalFn:
       cubes && typeof cubes.setIntervalFn === "function" ? cubes.setIntervalFn : setInterval,

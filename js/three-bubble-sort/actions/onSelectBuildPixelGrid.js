@@ -65,10 +65,17 @@ export default (
 
         unsortDiffuse(cs, {
           targetRatio:
-            cs && typeof cs.diffuseTargetRatio === "number" ? cs.diffuseTargetRatio : 0.8,
-          // Let unsortDiffuse scale timeout by cube count; allow override via cs.diffuseMsPerCube.
-          msPerCube:
-            cs && typeof cs.diffuseMsPerCube === "number" ? cs.diffuseMsPerCube : undefined,
+            cs && typeof cs.diffuseTargetRatio === "number" ? cs.diffuseTargetRatio : 0.5,
+          minMaxMs:
+            cs && typeof cs.diffuseMinMaxMs === "number" ? cs.diffuseMinMaxMs : undefined,
+          swapsPerTick:
+            cs && typeof cs.diffuseSwapsPerTick === "number" && cs.diffuseSwapsPerTick > 0
+              ? cs.diffuseSwapsPerTick
+              : undefined,
+          neighborRadius:
+            cs && typeof cs.diffuseNeighborRadius === "number"
+              ? cs.diffuseNeighborRadius
+              : undefined,
           randomFn: cs && typeof cs.randomFn === "function" ? cs.randomFn : Math.random,
           setIntervalFn:
             cs && typeof cs.setIntervalFn === "function" ? cs.setIntervalFn : setInterval,

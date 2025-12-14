@@ -44,6 +44,7 @@ const setCubeGreyscale = (cube, v) => {
  *   msPerCube?: number,
  *   minMaxMs?: number,
  *   cols?: number,
+ *   neighborRadius?: number,
  *   tickMs?: number,
  *   checkEveryMs?: number,
  *   maxCatchUpSteps?: number,
@@ -59,12 +60,13 @@ const setCubeGreyscale = (cube, v) => {
  */
 const unsortDiffuse = (cubes, options = {}) => {
   const {
-    targetRatio = 0.8,
+    targetRatio = 0.5,
     maxMs,
     // Default scaling: 50 cubes => 20s. Keep a 5s minimum for tiny grids.
     msPerCube = 400,
     minMaxMs = 5000,
     cols,
+    neighborRadius = 1,
     tickMs = 16,
     checkEveryMs = 100,
     maxCatchUpSteps = 120,
@@ -96,6 +98,8 @@ const unsortDiffuse = (cubes, options = {}) => {
     (typeof cols === "number" && cols > 0 ? cols : undefined) ??
     (cubes && typeof cubes.gridCols === "number" && cubes.gridCols > 0 ? cubes.gridCols : undefined);
   const use2D = typeof resolvedCols === "number" && resolvedCols > 0 && n % resolvedCols === 0;
+  const r0 = Number.isFinite(Number(neighborRadius)) ? Math.floor(Number(neighborRadius)) : 1;
+  const radius = Math.max(1, Math.min(10, r0));
 
   const effectiveMaxMs =
     typeof maxMs === "number" && Number.isFinite(maxMs)
@@ -188,20 +192,53 @@ const unsortDiffuse = (cubes, options = {}) => {
           const c = resolvedCols;
           const r = Math.floor(i / c);
           const cc = i % c;
-          const dir = Math.floor(randomFn() * 4); // 0=R,1=L,2=D,3=U
 
-          if (dir === 0 && cc + 1 < c) j = i + 1;
-          else if (dir === 1 && cc - 1 >= 0) j = i - 1;
-          else if (dir === 2 && (r + 1) * c + cc < n) j = i + c;
-          else if (dir === 3 && r - 1 >= 0) j = i - c;
-          else {
-            if (cc + 1 < c) j = i + 1;
-            else if (cc - 1 >= 0) j = i - 1;
-            else if ((r + 1) * c + cc < n) j = i + c;
-            else if (r - 1 >= 0) j = i - c;
+          if (radius <= 1) {
+            const dir = Math.floor(randomFn() * 4); // 0=R,1=L,2=D,3=U
+            if (dir === 0 && cc + 1 < c) j = i + 1;
+            else if (dir === 1 && cc - 1 >= 0) j = i - 1;
+            else if (dir === 2 && (r + 1) * c + cc < n) j = i + c;
+            else if (dir === 3 && r - 1 >= 0) j = i - c;
+            else {
+              if (cc + 1 < c) j = i + 1;
+              else if (cc - 1 >= 0) j = i - 1;
+              else if ((r + 1) * c + cc < n) j = i + c;
+              else if (r - 1 >= 0) j = i - c;
+            }
+          } else {
+            // "Neighbors-of-neighbors": pick a random offset within a Manhattan-ish radius
+            // but keep it local to preserve the visual diffusion feel.
+            // Try a few samples; if we fail (edges/corners), fall back to radius=1.
+            let found = false;
+            for (let tries = 0; tries < 8; tries++) {
+              const dx = Math.floor(randomFn() * (2 * radius + 1)) - radius;
+              const dy = Math.floor(randomFn() * (2 * radius + 1)) - radius;
+              if (dx === 0 && dy === 0) continue;
+
+              const rr = r + dy;
+              const ccc = cc + dx;
+              if (rr < 0 || ccc < 0) continue;
+              if (rr >= n / c || ccc >= c) continue;
+              const idx = rr * c + ccc;
+              if (idx < 0 || idx >= n) continue;
+              j = idx;
+              found = true;
+              break;
+            }
+            if (!found) {
+              if (cc + 1 < c) j = i + 1;
+              else if (cc - 1 >= 0) j = i - 1;
+              else if ((r + 1) * c + cc < n) j = i + c;
+              else if (r - 1 >= 0) j = i - c;
+            }
           }
         } else {
-          j = i + (randomFn() < 0.5 ? 1 : -1);
+          // 1D neighborhood: allow jumps within radius.
+          // Note: radius=1 preserves prior behavior (adjacent).
+          const span = 2 * radius + 1;
+          let off = Math.floor(randomFn() * span) - radius;
+          if (off === 0) off = randomFn() < 0.5 ? -1 : 1;
+          j = i + off;
           if (j < 0) j = 0;
           if (j >= n) j = n - 1;
           if (j === i) j = i === 0 ? 1 : i - 1;

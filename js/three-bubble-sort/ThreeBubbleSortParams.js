@@ -59,29 +59,33 @@ rawStyles({
 });
 
 
-export default (props )  => {
+export default (props) => {
   // Set some defaults for missing props
-  const cols  = props.cols;
-  const rows  = props.rows;
-  const speed  = props.speed;
-  const scaleX  = props.scaleX;
-  const scaleY  = props.scaleY;
-  const scaleZ  = props.scaleZ;
-  const dispatch  = props.dispatch;
+  const cols = props.cols;
+  const rows = props.rows;
+  const speed = props.speed;
+  const scaleX = props.scaleX;
+  const scaleY = props.scaleY;
+  const scaleZ = props.scaleZ;
+  const diffuseTargetRatio = props.diffuseTargetRatio ?? 0.5;
+  const diffuseMinMaxMs = props.diffuseMinMaxMs ?? 5000;
+  const diffuseSwapsPerTick = props.diffuseSwapsPerTick ?? 0;
+  const diffuseNeighborRadius = props.diffuseNeighborRadius ?? 1;
+  const dispatch = props.dispatch;
 
-  useEffect(() => {});
+  useEffect(() => { });
 
   const changeParam = (
-    dispatch ,
-    param ,
-  )  => (
-    e ,
-  )  => {
-    dispatch({
-      type: "CHANGE_PARAM",
-      payload: { param, value: e.target.value },
-    });
-  };
+    dispatch,
+    param,
+  ) => (
+    e,
+  ) => {
+      dispatch({
+        type: "CHANGE_PARAM",
+        payload: { param, value: e.target.value },
+      });
+    };
 
   return html`
     <div id="params-container" className="${styles.paramsContainer}">
@@ -132,6 +136,79 @@ export default (props )  => {
             step="1"
             onChange=${changeParam(dispatch, "speed")}
             value="${speed.toString()}"
+          />
+        </div>
+        <div>
+          <label for="diffuseTargetRatio">Unsort target inversion ratio:</label>
+          <output
+            id="diffuseTargetRatioOutput"
+            name="diffuseTargetRatioOutput"
+            for="diffuseTargetRatio"
+            >${diffuseTargetRatio.toString()}</output
+          >
+          <input
+            type="range"
+            id="diffuseTargetRatio"
+            name="diffuseTargetRatio"
+            min="0"
+            max="1"
+            step="0.05"
+            onChange=${changeParam(dispatch, "diffuseTargetRatio")}
+            value="${diffuseTargetRatio.toString()}"
+          />
+        </div>
+        <div>
+          <label for="diffuseMinMaxMs">Unsort min timeout (ms):</label>
+          <output id="diffuseMinMaxMsOutput" name="diffuseMinMaxMsOutput" for="diffuseMinMaxMs"
+            >${diffuseMinMaxMs.toString()}</output
+          >
+          <input
+            type="range"
+            id="diffuseMinMaxMs"
+            name="diffuseMinMaxMs"
+            min="0"
+            max="60000"
+            step="500"
+            onChange=${changeParam(dispatch, "diffuseMinMaxMs")}
+            value="${diffuseMinMaxMs.toString()}"
+          />
+        </div>
+        <div>
+          <label for="diffuseSwapsPerTick">Unsort swaps-per-tick (0 = auto):</label>
+          <output
+            id="diffuseSwapsPerTickOutput"
+            name="diffuseSwapsPerTickOutput"
+            for="diffuseSwapsPerTick"
+            >${diffuseSwapsPerTick.toString()}</output
+          >
+          <input
+            type="range"
+            id="diffuseSwapsPerTick"
+            name="diffuseSwapsPerTick"
+            min="0"
+            max="2000"
+            step="10"
+            onChange=${changeParam(dispatch, "diffuseSwapsPerTick")}
+            value="${diffuseSwapsPerTick.toString()}"
+          />
+        </div>
+        <div>
+          <label for="diffuseNeighborRadius">Unsort neighbor radius (1 = adjacent):</label>
+          <output
+            id="diffuseNeighborRadiusOutput"
+            name="diffuseNeighborRadiusOutput"
+            for="diffuseNeighborRadius"
+            >${diffuseNeighborRadius.toString()}</output
+          >
+          <input
+            type="range"
+            id="diffuseNeighborRadius"
+            name="diffuseNeighborRadius"
+            min="1"
+            max="6"
+            step="1"
+            onChange=${changeParam(dispatch, "diffuseNeighborRadius")}
+            value="${diffuseNeighborRadius.toString()}"
           />
         </div>
         <div>
