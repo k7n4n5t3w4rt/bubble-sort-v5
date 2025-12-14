@@ -10,63 +10,65 @@ import initializeHitTestSource from "./initializeHitTestSource.js";
 import anime from "animejs/lib/anime.es.js";
 
 export default (
-  sceneData ,
-  speed ,
-  scaleXm ,
-  scaleYm ,
-  scaleZm ,
-  cols ,
-  rows ,
-)  => {
-  return async (timestamp, frame)  => {
-    const scaleX  = scaleXm / 100;
-    const scaleY  = scaleYm / 100;
-    const scaleZ  = scaleZm / 100;
-    if (frame) {
-      // 1. create a hit test source once and keep it for all the frames
-      // this gets called only once
-      // Could I move this to animate()?
-      if (!sceneData.reticleStuff.hitTestSourceInitialized) {
-        sceneData = await initializeHitTestSource(sceneData);
-      }
+  sceneData,
+  speed,
+  scaleXm,
+  scaleYm,
+  scaleZm,
+  cols,
+  rows,
+) => {
+  return async (timestamp, frame) => {
+    const scaleX = scaleXm / 100;
+    const scaleY = scaleYm / 100;
+    const scaleZ = scaleZm / 100;
 
-      const { stats, scene, camera, renderer, reticleStuff, cubes } = sceneData;
+    const session =
+      sceneData?.renderer?.xr?.getSession && sceneData.renderer.xr.getSession();
+    const inXRFrame = Boolean(frame && session);
 
-      if (reticleStuff.active) {
-        // 2. get hit test results
-        if (reticleStuff.hitTestSourceInitialized) {
-          // we get the hit test results for a particular frame
-          const hitTestResults = frame.getHitTestResults(
-            reticleStuff.hitTestSource,
-          );
-
-          // XRHitTestResults The hit test may find multiple surfaces. The first one in the array is the one closest to the camera.
-          if (hitTestResults.length > 0) {
-            const hit = hitTestResults[0];
-            // Get a pose from the hit test result. The pose represents the pose of a point on a surface.
-            const pose = hit.getPose(reticleStuff.localSpace);
-
-            reticleStuff.reticle.visible = true;
-            // Transform/move the reticle image to the hit test position
-            reticleStuff.reticle.matrix.fromArray(pose.transform.matrix);
-          } else {
-            reticleStuff.reticle.visible = false;
-          }
-        }
-      } else {
-        reticleStuff.reticle.visible = false;
-        // -------------------------------------
-        // Weirdly, this kills the rendering
-        // -------------------------------------
-        // reticleStuff.hitTestSourceInitialized = false;
-        // reticleStuff.hitTestSource = null;
-      }
-
-      if (cubes.pixelGrid !== undefined && cubes.active === true) {
-        move(cubes, speed, scaleZ, anime);
-      }
-      sceneData.stats.update();
-      renderer.render(scene, camera);
+    // XR-only: create a hit test source once per session.
+    if (
+      inXRFrame &&
+      sceneData?.reticleStuff &&
+      !sceneData.reticleStuff.hitTestSourceInitialized
+    ) {
+      sceneData = await initializeHitTestSource(sceneData);
     }
+
+    const { stats, scene, camera, renderer, reticleStuff, cubes, controls } =
+      sceneData;
+
+    if (controls && typeof controls.update === "function") {
+      controls.update();
+    }
+
+    // XR-only: update reticle pose/visibility.
+    if (inXRFrame && reticleStuff && reticleStuff.active) {
+      if (reticleStuff.hitTestSourceInitialized) {
+        const hitTestResults = frame.getHitTestResults(reticleStuff.hitTestSource);
+        if (hitTestResults.length > 0) {
+          const hit = hitTestResults[0];
+          const pose = hit.getPose(reticleStuff.localSpace);
+          if (reticleStuff.reticle) {
+            reticleStuff.reticle.visible = true;
+            reticleStuff.reticle.matrix.fromArray(pose.transform.matrix);
+          }
+        } else if (reticleStuff.reticle) {
+          reticleStuff.reticle.visible = false;
+        }
+      }
+    } else if (reticleStuff && reticleStuff.reticle) {
+      reticleStuff.reticle.visible = false;
+    }
+
+    if (cubes && cubes.pixelGrid !== undefined && cubes.active === true) {
+      move(cubes, speed, scaleZ, anime);
+    }
+
+    if (stats && typeof stats.update === "function") stats.update();
+
+    // Always render (works for both XR and normal 3D).
+    renderer.render(scene, camera);
   };
 };

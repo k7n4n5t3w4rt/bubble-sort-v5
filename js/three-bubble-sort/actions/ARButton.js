@@ -1,8 +1,16 @@
+/**
+ * @param {string} locationString
+ * @param {any} renderer
+ * @param {any} [sessionInit]
+ * @param {{ onSessionStarted?: ((session: any) => (void | Promise<void>)) }} [hooks]
+ * @returns {void | HTMLAnchorElement | HTMLButtonElement}
+ */
 const createButton = (
-  locationString ,
-  renderer ,
-  sessionInit  = {},
-)  => {
+  locationString,
+  renderer,
+  sessionInit = {},
+  { onSessionStarted: onSessionStartedHook = undefined } = {},
+) => {
   const existingButton = document.getElementById("ARButton");
   if (existingButton !== null) {
     existingButton.remove();
@@ -19,6 +27,14 @@ const createButton = (
         renderer.xr.setReferenceSpaceType("local");
 
         await renderer.xr.setSession(session);
+
+        if (typeof onSessionStartedHook === "function") {
+          try {
+            await onSessionStartedHook(session);
+          } catch (e) {
+            // Ignore hook errors so AR start still works.
+          }
+        }
 
         button.textContent = "STOP AR";
         button.style.display = "";
