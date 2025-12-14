@@ -3,13 +3,54 @@
 // --------------------------------------------------
 import cube1AnimeOptions from "./cube1AnimeOptions.js";
 import cube2AnimeOptions from "./cube2AnimeOptions.js";
+import scheduleUnsort from "./scheduleUnsort.js";
+import unsort from "./unsort.js";
+
+const nowMs = () => {
+  // eslint-disable-next-line no-undef
+  if (typeof performance !== "undefined" && typeof performance.now === "function") {
+    return performance.now();
+  }
+  return Date.now();
+};
+
+const formatMinutesSeconds = (totalMs) => {
+  const totalSeconds = Math.max(0, Math.floor(totalMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+};
+
+const startSorting = (cubes) => {
+  cubes.active = true;
+  cubes.moving = false;
+  cubes.currentIndex = 0;
+  cubes.passHadSwap = false;
+  cubes.sortStartMs = nowMs();
+  cubes.sortEndMs = undefined;
+
+  cubes.sortRunId = (cubes.sortRunId || 0) + 1;
+  if (typeof cubes.logFn === "function") {
+    const cubeCount = Array.isArray(cubes.pixelGrid) ? cubes.pixelGrid.length : 0;
+    cubes.logFn(
+      `[sort] #${cubes.sortRunId} start`,
+      { startMs: cubes.sortStartMs, cubeCount },
+    );
+  }
+};
+
+const unsortAndStartSorting = (cubes) => {
+  // Allow deterministic tests by injecting a RNG.
+  unsort(cubes, cubes && typeof cubes.randomFn === "function" ? cubes.randomFn : Math.random);
+  startSorting(cubes);
+};
 
 const move = (
-  cubes ,
-  speed ,
-  scaleZ ,
-  anime ,
-)  => {
+  cubes,
+  speed,
+  scaleZ,
+  anime,
+) => {
   // NOTE:
   // This might not be very clear so:
   //
@@ -19,20 +60,52 @@ const move = (
   //
   //		/js/three-bubble-sort/actions/pixelGrid.js (Line 34)
   //
-  let movingCube1  = true;
-  let movingCube2  = true;
-  const currentIndex  = cubes.currentIndex;
+  let movingCube1 = true;
+  let movingCube2 = true;
+  if (cubes.passHadSwap == null) cubes.passHadSwap = false;
+  const currentIndex = cubes.currentIndex;
   const nextIndex = cubes.currentIndex + 1;
   const cube1 = cubes.pixelGrid[currentIndex];
   const cube2 = cubes.pixelGrid[nextIndex];
 
   if (cubes.moving === false) {
-    // Check if we are actually at the end of the array of cubes
-    // and set cubes to not be active so as to stop
-    // the animation in render()
+    // End-of-pass handling (when nextIndex runs off the end).
     if (cube2 === undefined) {
-      cubes.active === false;
+      // Stop after the first full pass with no swaps.
+      if (cubes.passHadSwap === false) {
+        cubes.active = false;
+        cubes.currentIndex = 0;
+        cubes.sortEndMs = nowMs();
+        const sortStartMs =
+          typeof cubes.sortStartMs === "number" ? cubes.sortStartMs : cubes.sortEndMs;
+        const totalMs = Math.max(0, cubes.sortEndMs - sortStartMs);
+        const total = formatMinutesSeconds(totalMs);
+
+        if (typeof cubes.logFn === "function") {
+          cubes.logFn(
+            `[sort] #${cubes.sortRunId || "?"} stop`,
+            { stopMs: cubes.sortEndMs, totalMs, total },
+          );
+        }
+
+        // Repeat: wait 10s, unsort, then start sorting again.
+        const setTimeoutFn =
+          cubes && typeof cubes.setTimeoutFn === "function" ? cubes.setTimeoutFn : setTimeout;
+        const clearTimeoutFn =
+          cubes && typeof cubes.clearTimeoutFn === "function" ? cubes.clearTimeoutFn : clearTimeout;
+        scheduleUnsort(cubes, {
+          delayMs: 10_000,
+          setTimeoutFn,
+          clearTimeoutFn,
+          unsortFn: unsortAndStartSorting,
+        });
+
+        return cubes;
+      }
+
+      // Pass had swaps -> start a new pass.
       cubes.currentIndex = 0;
+      cubes.passHadSwap = false;
       return cubes;
     }
     // console.log(`Trying cubes[${currentIndex}] and cubes[${nextIndex}]...`);
@@ -42,6 +115,8 @@ const move = (
     // );
 
     if (cube1.bubble_value > cube2.bubble_value) {
+      // Mark that this pass performed at least one swap.
+      cubes.passHadSwap = true;
       //   console.log(
       //     `cubes[${currentIndex}] bubble value (${cube1.bubble_value}) > cubes[${nextIndex}] bubble value (${cube2.bubble_value})`,
       //   );

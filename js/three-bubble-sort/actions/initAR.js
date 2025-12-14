@@ -45,7 +45,7 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
 
   const reticleStuff = addReticleToScene({ stats, scene, camera, renderer });
 
-  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number }} */
+  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number, passHadSwap?: boolean, sortStartMs?: number, sortEndMs?: number, sortRunId?: number, unsortTimeoutId?: any, setTimeoutFn?: any, clearTimeoutFn?: any, randomFn?: any, logFn?: any, hasGrid?: boolean }} */
   const cubes = {
     pixelGridGroup: {},
     pixelGrid: /** @type {any[]} */ ([]),
@@ -53,6 +53,7 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
     active: false,
     currentIndex: 0,
   };
+  cubes.logFn = console.log;
 
   const controller = renderer.xr.getController(0);
   controller.addEventListener(

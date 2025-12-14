@@ -11,7 +11,16 @@ import onWindowResize from "../calculations/onWindowResize.js";
 import animate from "./animate.js";
 import pixelGrid from "./pixelGrid.js";
 import scheduleUnsort from "./scheduleUnsort.js";
+import unsort from "./unsort.js";
 import getOrCreateRenderContainer from "./getOrCreateRenderContainer.js";
+
+const nowMs = () => {
+  // eslint-disable-next-line no-undef
+  if (typeof performance !== "undefined" && typeof performance.now === "function") {
+    return performance.now();
+  }
+  return Date.now();
+};
 
 const makeNonARReticleStuff = () => ({
   active: false,
@@ -56,7 +65,7 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
 
   const reticleStuff = makeNonARReticleStuff();
 
-  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number }} */
+  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number, passHadSwap?: boolean, sortStartMs?: number, sortEndMs?: number, sortRunId?: number, unsortTimeoutId?: any, setTimeoutFn?: any, clearTimeoutFn?: any, randomFn?: any, logFn?: any }} */
   const cubes = {
     pixelGridGroup: {},
     pixelGrid: /** @type {any[]} */ ([]),
@@ -64,6 +73,7 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
     active: false,
     currentIndex: 0,
   };
+  cubes.logFn = console.log;
 
   // Build grid immediately (normal 3D mode).
   const { pixelGridGroup, pixelGridCubes } = pixelGrid(
@@ -78,11 +88,29 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
   cubes.pixelGrid = pixelGridCubes;
   cubes.pixelGridGroup = pixelGridGroup;
   cubes.moving = false;
-  cubes.active = true;
+  // Do not start sorting until after the initial unsort runs.
+  cubes.active = false;
   cubes.currentIndex = 0;
+  cubes.passHadSwap = false;
 
-  // Grid starts sorted; unsort shortly after it becomes visible.
-  scheduleUnsort(cubes);
+  // Grid starts sorted; after it’s visible, unsort it, then begin sorting.
+  scheduleUnsort(cubes, {
+    delayMs: 10_000,
+    unsortFn: (cs) => {
+      unsort(cs, cs && typeof cs.randomFn === "function" ? cs.randomFn : Math.random);
+      cs.moving = false;
+      cs.currentIndex = 0;
+      cs.passHadSwap = false;
+      cs.sortStartMs = nowMs();
+      cs.sortEndMs = undefined;
+      cs.sortRunId = (cs.sortRunId || 0) + 1;
+      if (typeof cs.logFn === "function") {
+        const cubeCount = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 0;
+        cs.logFn(`[sort] #${cs.sortRunId} start`, { startMs: cs.sortStartMs, cubeCount });
+      }
+      cs.active = true;
+    },
+  });
 
   // Frame the grid nicely.
   const box = new THREE.Box3().setFromObject(pixelGridGroup);
