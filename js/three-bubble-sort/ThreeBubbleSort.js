@@ -23,7 +23,6 @@ import Params from "./ThreeBubbleSortParams.js";
 // --------------------------------------------------
 import AppReducer from "../appReducer.js";
 import setupMobileDebug from "../setup_mobile_debug.js";
-import createStats from "../create_stats.js";
 import init from "./actions/init.js";
 import seedString from "../simple_css_seed.js";
 import {
@@ -47,7 +46,7 @@ const [styles] = createStyles({
 });
 
 
-export default (props )  => {
+export default (props) => {
   // Set some defaults for missing props
   const cols = Math.abs(parseInt(props.cols) || 5);
   const rows = Math.abs(parseInt(props.rows) || 4);
@@ -56,7 +55,7 @@ export default (props )  => {
   const scaleY = Math.abs(Math.floor(parseFloat(props.scaley)) || 10);
   const scaleZ = Math.abs(Math.floor(parseFloat(props.scalez)) || 10);
 
-  const [state , dispatch] = useReducer(AppReducer, {
+  const [state, dispatch] = useReducer(AppReducer, {
     cols,
     rows,
     speed,
@@ -67,7 +66,6 @@ export default (props )  => {
 
   useEffect(() => {
     // setupMobileDebug();
-    let stats = createStats();
     init(
       state.cols,
       state.rows,
@@ -76,7 +74,7 @@ export default (props )  => {
       state.scaleY,
       state.scaleZ,
     );
-  });
+  }, [state.cols, state.rows, state.speed, state.scaleX, state.scaleY, state.scaleZ]);
 
   return html`
     <div id="bubble-sort" className="${styles.bubbleSort}">

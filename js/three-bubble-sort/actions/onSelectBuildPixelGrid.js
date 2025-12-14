@@ -9,19 +9,21 @@ import pixelGrid from "./pixelGrid.js";
 import scheduleUnsort from "./scheduleUnsort.js";
 
 export default (
-  reticleStuff ,
-  cubes ,
-  cols ,
-  rows ,
-  scaleX ,
-  scaleY ,
-  scaleZ ,
-  scene ,
-  camera ,
-)  => ()  => {
-  if (reticleStuff.reticle.visible) {
-    reticleStuff.active = false;
-  }
+  reticleStuff,
+  cubes,
+  cols,
+  rows,
+  scaleX,
+  scaleY,
+  scaleZ,
+  scene,
+  camera,
+) => () => {
+  // Once the user selects a placement point, we should stop hit-testing and hide
+  // the reticle. Previously this only happened if the reticle happened to be
+  // visible at the exact moment of the tap, which could leave it visible.
+  reticleStuff.active = false;
+  if (reticleStuff.reticle) reticleStuff.reticle.visible = false;
 
   if (cubes.active === undefined || cubes.active === false) {
     // Build the grid of pixels
