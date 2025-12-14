@@ -4,7 +4,7 @@
 import cube1AnimeOptions from "./cube1AnimeOptions.js";
 import cube2AnimeOptions from "./cube2AnimeOptions.js";
 import scheduleUnsort from "./scheduleUnsort.js";
-import unsort from "./unsort.js";
+import unsortDiffuse from "./unsortDiffuse.js";
 
 const nowMs = () => {
   // eslint-disable-next-line no-undef
@@ -21,7 +21,7 @@ const formatMinutesSeconds = (totalMs) => {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 };
 
-const startSorting = (cubes) => {
+const startSorting = (cubes, meta = {}) => {
   cubes.active = true;
   cubes.moving = false;
   cubes.currentIndex = 0;
@@ -34,15 +34,40 @@ const startSorting = (cubes) => {
     const cubeCount = Array.isArray(cubes.pixelGrid) ? cubes.pixelGrid.length : 0;
     cubes.logFn(
       `[sort] #${cubes.sortRunId} start`,
-      { startMs: cubes.sortStartMs, cubeCount },
+      { startMs: cubes.sortStartMs, cubeCount, ...meta },
     );
   }
 };
 
 const unsortAndStartSorting = (cubes) => {
-  // Allow deterministic tests by injecting a RNG.
-  unsort(cubes, cubes && typeof cubes.randomFn === "function" ? cubes.randomFn : Math.random);
-  startSorting(cubes);
+  cubes.active = false;
+
+  // Allow deterministic tests by injecting timer + RNG sources.
+  unsortDiffuse(cubes, {
+    targetRatio:
+      cubes && typeof cubes.diffuseTargetRatio === "number" ? cubes.diffuseTargetRatio : 0.8,
+    // Let unsortDiffuse scale timeout by cube count; allow override via cubes.diffuseMsPerCube.
+    msPerCube:
+      cubes && typeof cubes.diffuseMsPerCube === "number" ? cubes.diffuseMsPerCube : undefined,
+    randomFn: cubes && typeof cubes.randomFn === "function" ? cubes.randomFn : Math.random,
+    setIntervalFn:
+      cubes && typeof cubes.setIntervalFn === "function" ? cubes.setIntervalFn : setInterval,
+    clearIntervalFn:
+      cubes && typeof cubes.clearIntervalFn === "function" ? cubes.clearIntervalFn : clearInterval,
+    nowFn: cubes && typeof cubes.nowFn === "function" ? cubes.nowFn : nowMs,
+    onComplete: ({ ratio, reason, elapsedMs, maxMs }) => {
+      if (reason === "timeout" && typeof cubes.logFn === "function") {
+        const cubeCount = Array.isArray(cubes.pixelGrid) ? cubes.pixelGrid.length : 0;
+        cubes.logFn("[unsort] diffuse timeout", {
+          cubeCount,
+          inversionRatio: ratio,
+          elapsedMs,
+          maxMs,
+        });
+      }
+      startSorting(cubes, { inversionRatio: ratio });
+    },
+  });
 };
 
 const move = (

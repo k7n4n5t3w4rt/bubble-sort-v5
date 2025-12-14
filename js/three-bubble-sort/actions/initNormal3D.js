@@ -11,7 +11,7 @@ import onWindowResize from "../calculations/onWindowResize.js";
 import animate from "./animate.js";
 import pixelGrid from "./pixelGrid.js";
 import scheduleUnsort from "./scheduleUnsort.js";
-import unsort from "./unsort.js";
+import unsortDiffuse from "./unsortDiffuse.js";
 import getOrCreateRenderContainer from "./getOrCreateRenderContainer.js";
 
 const nowMs = () => {
@@ -65,7 +65,7 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
 
   const reticleStuff = makeNonARReticleStuff();
 
-  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number, passHadSwap?: boolean, sortStartMs?: number, sortEndMs?: number, sortRunId?: number, unsortTimeoutId?: any, setTimeoutFn?: any, clearTimeoutFn?: any, randomFn?: any, logFn?: any }} */
+  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number, passHadSwap?: boolean, sortStartMs?: number, sortEndMs?: number, sortRunId?: number, unsortTimeoutId?: any, setTimeoutFn?: any, clearTimeoutFn?: any, diffusing?: boolean, diffuseIntervalId?: any, setIntervalFn?: any, clearIntervalFn?: any, nowFn?: any, diffuseMsPerCube?: number, gridCols?: number, gridRows?: number, randomFn?: any, logFn?: any }} */
   const cubes = {
     pixelGridGroup: {},
     pixelGrid: /** @type {any[]} */ ([]),
@@ -87,6 +87,8 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
   );
   cubes.pixelGrid = pixelGridCubes;
   cubes.pixelGridGroup = pixelGridGroup;
+  cubes.gridCols = cols;
+  cubes.gridRows = rows;
   cubes.moving = false;
   // Do not start sorting until after the initial unsort runs.
   cubes.active = false;
@@ -97,18 +99,45 @@ export default (renderer, { cols, rows, speed, scaleX, scaleY, scaleZ }) => {
   scheduleUnsort(cubes, {
     delayMs: 10_000,
     unsortFn: (cs) => {
-      unsort(cs, cs && typeof cs.randomFn === "function" ? cs.randomFn : Math.random);
-      cs.moving = false;
-      cs.currentIndex = 0;
-      cs.passHadSwap = false;
-      cs.sortStartMs = nowMs();
-      cs.sortEndMs = undefined;
-      cs.sortRunId = (cs.sortRunId || 0) + 1;
-      if (typeof cs.logFn === "function") {
-        const cubeCount = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 0;
-        cs.logFn(`[sort] #${cs.sortRunId} start`, { startMs: cs.sortStartMs, cubeCount });
-      }
-      cs.active = true;
+      cs.active = false;
+
+      unsortDiffuse(cs, {
+        targetRatio:
+          cs && typeof cs.diffuseTargetRatio === "number" ? cs.diffuseTargetRatio : 0.8,
+        // Let unsortDiffuse scale timeout by cube count; allow override via cs.diffuseMsPerCube.
+        msPerCube:
+          cs && typeof cs.diffuseMsPerCube === "number" ? cs.diffuseMsPerCube : undefined,
+        randomFn: cs && typeof cs.randomFn === "function" ? cs.randomFn : Math.random,
+        setIntervalFn: cs && typeof cs.setIntervalFn === "function" ? cs.setIntervalFn : setInterval,
+        clearIntervalFn:
+          cs && typeof cs.clearIntervalFn === "function" ? cs.clearIntervalFn : clearInterval,
+        nowFn: cs && typeof cs.nowFn === "function" ? cs.nowFn : nowMs,
+        onComplete: ({ ratio, reason, elapsedMs, maxMs }) => {
+          if (reason === "timeout" && typeof cs.logFn === "function") {
+            const cubeCount = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 0;
+            cs.logFn("[unsort] diffuse timeout", {
+              cubeCount,
+              inversionRatio: ratio,
+              elapsedMs,
+              maxMs,
+            });
+          }
+          cs.moving = false;
+          cs.currentIndex = 0;
+          cs.passHadSwap = false;
+          cs.sortStartMs = nowMs();
+          cs.sortEndMs = undefined;
+          cs.sortRunId = (cs.sortRunId || 0) + 1;
+          if (typeof cs.logFn === "function") {
+            const cubeCount = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 0;
+            cs.logFn(
+              `[sort] #${cs.sortRunId} start`,
+              { startMs: cs.sortStartMs, cubeCount, inversionRatio: ratio },
+            );
+          }
+          cs.active = true;
+        },
+      });
     },
   });
 

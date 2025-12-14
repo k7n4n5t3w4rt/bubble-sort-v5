@@ -22,6 +22,9 @@ const immediateAnime = (opts) => {
 test("move() stops after a full no-swap pass and schedules unsort+restart", () => {
   /** @type {{ cb: null | Function, delay: null | number }} */
   const captured = { cb: null, delay: null };
+  /** @type {{ cb: null | Function, ms: null | number }} */
+  const intervalCaptured = { cb: null, ms: null };
+  let t = 0;
 
   const cubes = {
     pixelGrid: [makeCube(1), makeCube(2), makeCube(3)], // already sorted
@@ -36,6 +39,14 @@ test("move() stops after a full no-swap pass and schedules unsort+restart", () =
       return 1;
     },
     clearTimeoutFn: () => { },
+    // Inject interval + clock for diffusion restart.
+    setIntervalFn: (cb, ms) => {
+      intervalCaptured.cb = cb;
+      intervalCaptured.ms = ms;
+      return 99;
+    },
+    clearIntervalFn: () => { },
+    nowFn: () => t,
     // Deterministic random for unsort (doesn't matter much for this test)
     randomFn: () => 0,
   };
@@ -54,6 +65,18 @@ test("move() stops after a full no-swap pass and schedules unsort+restart", () =
   // Trigger scheduled restart (unsort + start sorting again).
   captured.cb && captured.cb();
 
+  // Restart is now: diffuse (active=false), then start sorting when diffusion completes.
+  should(cubes.active).be.exactly(false);
+  should(cubes.diffusing).be.exactly(true);
+  should(typeof intervalCaptured.cb).be.exactly("function");
+
+  // Drive the diffusion interval until completion (target or timeout).
+  for (let i = 0; i < 500 && cubes.diffusing === true; i++) {
+    t += intervalCaptured.ms || 16;
+    intervalCaptured.cb && intervalCaptured.cb();
+  }
+
+  should(cubes.diffusing).be.exactly(false);
   should(cubes.active).be.exactly(true);
   should(cubes.currentIndex).be.exactly(0);
   should(cubes.passHadSwap).be.exactly(false);
