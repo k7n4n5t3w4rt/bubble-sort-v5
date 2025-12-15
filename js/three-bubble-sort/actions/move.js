@@ -24,6 +24,7 @@ const startSorting = (cubes, meta = {}) => {
   cubes.moving = false;
   cubes.currentIndex = 0;
   cubes.passHadSwap = false;
+  cubes.swapCount = 0;
   // Bubble-sort optimization:
   // - passEndIndex: exclusive upper bound for comparisons in the current pass.
   //   We never need to compare beyond the last known unsorted index.
@@ -130,7 +131,7 @@ const move = (
         if (typeof cubes.logFn === "function") {
           cubes.logFn(
             `[sort] #${cubes.sortRunId || "?"} stop`,
-            { stopMs: cubes.sortEndMs, totalMs, total },
+            { stopMs: cubes.sortEndMs, totalMs, total, swaps: cubes.swapCount || 0 },
           );
         }
 
@@ -167,6 +168,7 @@ const move = (
     if (cube1.bubble_value > cube2.bubble_value) {
       // Mark that this pass performed at least one swap.
       cubes.passHadSwap = true;
+      cubes.swapCount = (cubes.swapCount || 0) + 1;
       // Track the last swap position so we can skip the tail on the next pass.
       cubes.lastSwapIndex = nextIndex;
       //   console.log(
