@@ -64,6 +64,7 @@ export default (props) => {
     1,
     Math.floor(parseFloat(props.diffuseNeighborRadius)) || 1,
   );
+  const unsortPauseMs = Math.max(0, Math.floor(parseFloat(props.unsortPauseMs)) || 10_000);
 
   const [state, dispatch] = useReducer(AppReducer, {
     cols,
@@ -76,6 +77,7 @@ export default (props) => {
     diffuseMinMaxMs,
     diffuseSwapsPerTick,
     diffuseNeighborRadius,
+    unsortPauseMs,
   });
 
   useEffect(() => {
@@ -98,6 +100,7 @@ export default (props) => {
         url.searchParams.set("diffuseMinMaxMs", String(state.diffuseMinMaxMs));
         url.searchParams.set("diffuseSwapsPerTick", String(state.diffuseSwapsPerTick));
         url.searchParams.set("diffuseNeighborRadius", String(state.diffuseNeighborRadius));
+        url.searchParams.set("unsortPauseMs", String(state.unsortPauseMs));
 
         window.history.replaceState({}, "", `${url.pathname}?${url.searchParams.toString()}`);
       } catch (e) {
@@ -118,6 +121,7 @@ export default (props) => {
         diffuseMinMaxMs: state.diffuseMinMaxMs,
         diffuseSwapsPerTick: state.diffuseSwapsPerTick,
         diffuseNeighborRadius: state.diffuseNeighborRadius,
+        unsortPauseMs: state.unsortPauseMs,
       },
     );
   }, [
@@ -131,6 +135,7 @@ export default (props) => {
     state.diffuseMinMaxMs,
     state.diffuseSwapsPerTick,
     state.diffuseNeighborRadius,
+    state.unsortPauseMs,
   ]);
 
   return html`
@@ -149,6 +154,7 @@ export default (props) => {
         diffuseMinMaxMs="${state.diffuseMinMaxMs}"
         diffuseSwapsPerTick="${state.diffuseSwapsPerTick}"
         diffuseNeighborRadius="${state.diffuseNeighborRadius}"
+        unsortPauseMs="${state.unsortPauseMs}"
         dispatch="${dispatch}"
       />
     </div>

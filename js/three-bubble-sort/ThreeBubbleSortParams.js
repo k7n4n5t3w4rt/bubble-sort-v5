@@ -71,6 +71,7 @@ export default (props) => {
   const diffuseMinMaxMs = props.diffuseMinMaxMs ?? 5000;
   const diffuseSwapsPerTick = props.diffuseSwapsPerTick ?? 0;
   const diffuseNeighborRadius = props.diffuseNeighborRadius ?? 1;
+  const unsortPauseMs = props.unsortPauseMs ?? 10_000;
   const dispatch = props.dispatch;
 
   useEffect(() => { });
@@ -209,6 +210,22 @@ export default (props) => {
             step="1"
             onChange=${changeParam(dispatch, "diffuseNeighborRadius")}
             value="${diffuseNeighborRadius.toString()}"
+          />
+        </div>
+        <div>
+          <label for="unsortPauseMs">Pause before unsort (ms):</label>
+          <output id="unsortPauseMsOutput" name="unsortPauseMsOutput" for="unsortPauseMs"
+            >${unsortPauseMs.toString()}</output
+          >
+          <input
+            type="range"
+            id="unsortPauseMs"
+            name="unsortPauseMs"
+            min="0"
+            max="60000"
+            step="500"
+            onChange=${changeParam(dispatch, "unsortPauseMs")}
+            value="${unsortPauseMs.toString()}"
           />
         </div>
         <div>

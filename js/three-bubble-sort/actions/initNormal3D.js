@@ -42,6 +42,7 @@ export default (renderer, params) => {
     diffuseMinMaxMs,
     diffuseSwapsPerTick,
     diffuseNeighborRadius,
+    unsortPauseMs,
   } = params || {};
   // Stop any existing animation loop before switching modes.
   renderer.setAnimationLoop(null);
@@ -77,7 +78,7 @@ export default (renderer, params) => {
 
   const reticleStuff = makeNonARReticleStuff();
 
-  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number, passHadSwap?: boolean, sortStartMs?: number, sortEndMs?: number, sortRunId?: number, unsortTimeoutId?: any, setTimeoutFn?: any, clearTimeoutFn?: any, diffusing?: boolean, diffuseIntervalId?: any, diffuseRunToken?: number, setIntervalFn?: any, clearIntervalFn?: any, nowFn?: any, diffuseTargetRatio?: number, diffuseMinMaxMs?: number, diffuseSwapsPerTick?: number, diffuseNeighborRadius?: number, gridCols?: number, gridRows?: number, randomFn?: any, logFn?: any }} */
+  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number, passHadSwap?: boolean, sortStartMs?: number, sortEndMs?: number, sortRunId?: number, unsortTimeoutId?: any, setTimeoutFn?: any, clearTimeoutFn?: any, unsortPauseMs?: number, diffusing?: boolean, diffuseIntervalId?: any, diffuseRunToken?: number, setIntervalFn?: any, clearIntervalFn?: any, nowFn?: any, diffuseTargetRatio?: number, diffuseMinMaxMs?: number, diffuseSwapsPerTick?: number, diffuseNeighborRadius?: number, gridCols?: number, gridRows?: number, randomFn?: any, logFn?: any }} */
   const cubes = {
     pixelGridGroup: {},
     pixelGrid: /** @type {any[]} */ ([]),
@@ -113,6 +114,9 @@ export default (renderer, params) => {
   if (diffuseNeighborRadius != null && Number.isFinite(Number(diffuseNeighborRadius))) {
     cubes.diffuseNeighborRadius = Math.max(1, Math.floor(Number(diffuseNeighborRadius)));
   }
+  if (unsortPauseMs != null && Number.isFinite(Number(unsortPauseMs))) {
+    cubes.unsortPauseMs = Math.max(0, Number(unsortPauseMs));
+  }
   cubes.moving = false;
   // Do not start sorting until after the initial unsort runs.
   cubes.active = false;
@@ -121,7 +125,7 @@ export default (renderer, params) => {
 
   // Grid starts sorted; after it’s visible, unsort it, then begin sorting.
   scheduleUnsort(cubes, {
-    delayMs: 10_000,
+    delayMs: cubes && typeof cubes.unsortPauseMs === "number" ? cubes.unsortPauseMs : 10_000,
     unsortFn: (cs) => {
       cs.active = false;
 

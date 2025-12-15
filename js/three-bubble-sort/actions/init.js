@@ -12,6 +12,7 @@ export default (cols, rows, speed, scaleX, scaleY, scaleZ, diffusionParams = {})
     diffuseMinMaxMs,
     diffuseSwapsPerTick,
     diffuseNeighborRadius,
+    unsortPauseMs,
   } = diffusionParams || {};
 
   const locationString =
@@ -21,7 +22,8 @@ export default (cols, rows, speed, scaleX, scaleY, scaleZ, diffusionParams = {})
     `&diffuseTargetRatio=${diffuseTargetRatio ?? ""}` +
     `&diffuseMinMaxMs=${diffuseMinMaxMs ?? ""}` +
     `&diffuseSwapsPerTick=${diffuseSwapsPerTick ?? ""}` +
-    `&diffuseNeighborRadius=${diffuseNeighborRadius ?? ""}`;
+    `&diffuseNeighborRadius=${diffuseNeighborRadius ?? ""}` +
+    `&unsortPauseMs=${unsortPauseMs ?? ""}`;
 
   // Workflow-style orchestration: create renderer once, then offer mode choices.
   /** @type {any} */ (startButtonSetup)(

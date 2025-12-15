@@ -59,7 +59,7 @@ export default (
 
     // Grid is created in sorted order; after it’s visible, unsort it, then begin sorting.
     scheduleUnsort(cubes, {
-      delayMs: 10_000,
+      delayMs: cubes && typeof cubes.unsortPauseMs === "number" ? cubes.unsortPauseMs : 10_000,
       unsortFn: (cs) => {
         cs.active = false;
 

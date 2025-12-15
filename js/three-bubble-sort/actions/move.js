@@ -124,7 +124,8 @@ const move = (
         const clearTimeoutFn =
           cubes && typeof cubes.clearTimeoutFn === "function" ? cubes.clearTimeoutFn : clearTimeout;
         scheduleUnsort(cubes, {
-          delayMs: 10_000,
+          delayMs:
+            cubes && typeof cubes.unsortPauseMs === "number" ? cubes.unsortPauseMs : 10_000,
           setTimeoutFn,
           clearTimeoutFn,
           unsortFn: unsortAndStartSorting,
