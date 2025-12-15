@@ -22,7 +22,6 @@ import Params from "./ThreeBubbleSortParams.js";
 // HELPERS
 // --------------------------------------------------
 import AppReducer from "../appReducer.js";
-import setupMobileDebug from "../setup_mobile_debug.js";
 import init from "./actions/init.js";
 import seedString from "../simple_css_seed.js";
 import {
@@ -108,7 +107,6 @@ export default (props) => {
       }
     }
 
-    // setupMobileDebug();
     init(
       state.cols,
       state.rows,

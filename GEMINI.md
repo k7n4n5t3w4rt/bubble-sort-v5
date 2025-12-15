@@ -77,7 +77,7 @@ The application uses a sophisticated global state system:
 ### Global State (`gState`) 
 - Runtime application state
 - Includes flow metrics, work item positions, and UI state
-- Managed through `globalReducer` with Redux-like patterns
+- Managed via Preact Context (`js/AppContext.js`) using `useReducer`
 
 ### Context Integration
 - `AppContext` bridges global state with React Context

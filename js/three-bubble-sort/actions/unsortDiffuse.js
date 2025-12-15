@@ -54,7 +54,7 @@ const setCubeGreyscale = (cube, v) => {
  *   clearIntervalFn?: (id: any) => void,
  *   nowFn?: () => number,
  *   onProgress?: (ratio: number) => void,
- *   onComplete: (info: { ratio: number, reason: "target" | "timeout" | "noop", elapsedMs?: number, maxMs?: number }) => void,
+ *   onComplete?: (info: { ratio: number, reason: "target" | "timeout" | "noop", elapsedMs?: number, maxMs?: number }) => void,
  * }} options
  * @returns {any}
  */

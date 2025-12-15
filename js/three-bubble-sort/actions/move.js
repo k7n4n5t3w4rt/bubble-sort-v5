@@ -24,6 +24,14 @@ const startSorting = (cubes, meta = {}) => {
   cubes.moving = false;
   cubes.currentIndex = 0;
   cubes.passHadSwap = false;
+  // Bubble-sort optimization:
+  // - passEndIndex: exclusive upper bound for comparisons in the current pass.
+  //   We never need to compare beyond the last known unsorted index.
+  // - lastSwapIndex: last index involved in a swap during the current pass; next
+  //   pass can stop at that index (everything after is already ordered).
+  const n = Array.isArray(cubes?.pixelGrid) ? cubes.pixelGrid.length : 0;
+  cubes.passEndIndex = Math.max(0, n - 1);
+  cubes.lastSwapIndex = 0;
   cubes.sortStartMs = nowMs();
   cubes.sortEndMs = undefined;
 
@@ -91,14 +99,24 @@ const move = (
   let movingCube1 = true;
   let movingCube2 = true;
   if (cubes.passHadSwap == null) cubes.passHadSwap = false;
+  // Ensure optimization state exists even if startSorting wasn't called (older state).
+  if (cubes.passEndIndex == null || !Number.isFinite(cubes.passEndIndex)) {
+    const n = Array.isArray(cubes?.pixelGrid) ? cubes.pixelGrid.length : 0;
+    cubes.passEndIndex = Math.max(0, n - 1);
+  }
+  if (cubes.lastSwapIndex == null || !Number.isFinite(cubes.lastSwapIndex)) {
+    cubes.lastSwapIndex = 0;
+  }
   const currentIndex = cubes.currentIndex;
   const nextIndex = cubes.currentIndex + 1;
   const cube1 = cubes.pixelGrid[currentIndex];
   const cube2 = cubes.pixelGrid[nextIndex];
 
   if (cubes.moving === false) {
-    // End-of-pass handling (when nextIndex runs off the end).
-    if (cube2 === undefined) {
+    // End-of-pass handling:
+    // - stop comparisons once nextIndex exceeds the current pass bound (passEndIndex)
+    // - also handle the array-end case defensively (cube2 === undefined)
+    if (nextIndex > cubes.passEndIndex || cube2 === undefined) {
       // Stop after the first full pass with no swaps.
       if (cubes.passHadSwap === false) {
         cubes.active = false;
@@ -132,7 +150,10 @@ const move = (
         return cubes;
       }
 
-      // Pass had swaps -> start a new pass.
+      // Pass had swaps -> tighten the bound for the next pass and start over.
+      // Everything after lastSwapIndex is already in correct relative order.
+      cubes.passEndIndex = Math.max(0, Math.min(cubes.passEndIndex, cubes.lastSwapIndex || 0));
+      cubes.lastSwapIndex = 0;
       cubes.currentIndex = 0;
       cubes.passHadSwap = false;
       return cubes;
@@ -146,6 +167,8 @@ const move = (
     if (cube1.bubble_value > cube2.bubble_value) {
       // Mark that this pass performed at least one swap.
       cubes.passHadSwap = true;
+      // Track the last swap position so we can skip the tail on the next pass.
+      cubes.lastSwapIndex = nextIndex;
       //   console.log(
       //     `cubes[${currentIndex}] bubble value (${cube1.bubble_value}) > cubes[${nextIndex}] bubble value (${cube2.bubble_value})`,
       //   );
