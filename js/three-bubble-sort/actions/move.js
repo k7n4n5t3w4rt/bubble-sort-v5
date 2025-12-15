@@ -1,8 +1,6 @@
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
-import cube1AnimeOptions from "./cube1AnimeOptions.js";
-import cube2AnimeOptions from "./cube2AnimeOptions.js";
 import scheduleUnsort from "./scheduleUnsort.js";
 import unsortDiffuse from "./unsortDiffuse.js";
 
@@ -158,10 +156,8 @@ const move = (
         //   `Preparing to swap cubes[${currentIndex}]and cubes[${nextIndex}]...`,
         // );
 
-        const cube1StartPos = {
-          z: cube1.position.z,
-          y: cube1.position.y,
-        };
+        const cube1StartZ = cube1.position.z;
+        const cube1StartY = cube1.position.y;
         // This will cause all calls to move() to have no effect... until
         // the move has finished and cubes.moving is set back to false
         cubes.moving = true;
@@ -223,8 +219,8 @@ const move = (
               delay: 0,
             },
           ],
-          z: [{ value: cube1StartPos.z, duration: 1000 / speed, delay: 0 }],
-          y: [{ value: cube1StartPos.y, duration: 1000 / speed, delay: 0 }],
+          z: [{ value: cube1StartZ, duration: 1000 / speed, delay: 0 }],
+          y: [{ value: cube1StartY, duration: 1000 / speed, delay: 0 }],
           delay: 500,
           easing: "easeInOutCirc",
           complete: function (anim) {

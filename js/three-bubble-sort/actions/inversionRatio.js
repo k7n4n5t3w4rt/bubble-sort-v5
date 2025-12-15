@@ -6,18 +6,28 @@
  * Uses a Fenwick tree over value frequencies (size 256) to compute the exact
  * inversion count in O(n log 256).
  *
- * @param {number[]} values
+ * @param {ArrayLike<number>} values
+ * @param {{ bit?: Uint32Array | number[] } | undefined} [scratch]
  * @returns {number} inversion ratio in [0..1]
  */
-export const inversionRatioFromValues = (values) => {
-  if (!Array.isArray(values)) return 0;
-  const n = values.length;
+export const inversionRatioFromValues = (values, scratch) => {
+  if (!values || typeof values.length !== "number") return 0;
+  const n = values.length | 0;
   if (n < 2) return 0;
 
   // Fenwick tree (1-indexed) for frequencies of values 0..255 (mapped to 1..256).
   const size = 256;
-  /** @type {number[]} */
-  const bit = new Array(size + 1).fill(0);
+  /** @type {Uint32Array | number[]} */
+  const bit =
+    scratch && scratch.bit
+      ? scratch.bit
+      : // default: allocate if caller didn't provide scratch storage
+      new Uint32Array(size + 1);
+  // Reset frequencies
+  if (typeof bit.fill === "function") bit.fill(0);
+  else {
+    for (let i = 0; i <= size; i++) bit[i] = 0;
+  }
 
   const add = (idx1, delta) => {
     for (let i = idx1; i <= size; i += i & -i) bit[i] += delta;

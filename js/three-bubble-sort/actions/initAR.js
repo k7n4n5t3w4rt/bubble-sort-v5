@@ -28,6 +28,18 @@ export default (renderer, params) => {
   } = params || {};
   // Stop any existing animation loop before switching modes.
   renderer.setAnimationLoop(null);
+  // Cleanup any previous run to avoid accumulating listeners/GPU resources.
+  // @ts-ignore - ad-hoc internal property
+  if (renderer && typeof renderer.__bubbleSortCleanup === "function") {
+    try {
+      // @ts-ignore - ad-hoc internal property
+      renderer.__bubbleSortCleanup();
+    } catch (_) {
+      // ignore cleanup errors
+    }
+    // @ts-ignore - ad-hoc internal property
+    renderer.__bubbleSortCleanup = null;
+  }
 
   const container = getOrCreateRenderContainer();
   if (!container) return;
@@ -51,7 +63,8 @@ export default (renderer, params) => {
   scene.add(light);
 
   // Attach canvas + stats to container
-  renderer.setPixelRatio(window.devicePixelRatio);
+  // In AR, cap pixel ratio to reduce GPU load / heat (helps prevent WebGL context loss).
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.0));
   renderer.setSize(window.innerWidth, window.innerHeight);
   container.appendChild(renderer.domElement);
   container.appendChild(stats.domElement ?? stats.dom);
@@ -83,21 +96,62 @@ export default (renderer, params) => {
     cubes.unsortPauseMs = Math.max(0, Number(unsortPauseMs));
   }
 
+  // Log WebGL context loss/restoration (common failure mode on hot devices).
+  // Attach once per renderer so repeated inits don't add duplicate listeners.
+  if (
+    renderer &&
+    renderer.domElement &&
+    // @ts-ignore - ad-hoc internal property
+    renderer.__bubbleSortWebglListenersAttached !== true
+  ) {
+    // @ts-ignore - ad-hoc internal property
+    renderer.__bubbleSortWebglListenersAttached = true;
+
+    const getStats = () => ({
+      cubeCount: Array.isArray(cubes.pixelGrid) ? cubes.pixelGrid.length : 0,
+      active: Boolean(cubes.active),
+      diffusing: Boolean(cubes.diffusing),
+      pixelRatio:
+        typeof renderer.getPixelRatio === "function" ? renderer.getPixelRatio() : undefined,
+    });
+
+    const onLost = (e) => {
+      try {
+        if (e && typeof e.preventDefault === "function") e.preventDefault();
+      } catch (_) {
+        // ignore
+      }
+      if (typeof cubes.logFn === "function") {
+        cubes.logFn("[webgl] context lost", { mode: "ar", ...getStats() });
+      }
+    };
+    const onRestored = () => {
+      if (typeof cubes.logFn === "function") {
+        cubes.logFn("[webgl] context restored", { mode: "ar", ...getStats() });
+      }
+    };
+
+    renderer.domElement.addEventListener("webglcontextlost", onLost, false);
+    renderer.domElement.addEventListener("webglcontextrestored", onRestored, false);
+
+    // Store for later cleanup if needed.
+    // @ts-ignore - ad-hoc internal property
+    renderer.__bubbleSortWebglListenerFns = { onLost, onRestored };
+  }
+
   const controller = renderer.xr.getController(0);
-  controller.addEventListener(
-    "select",
-    onSelectBuildPixelGrid(
-      reticleStuff,
-      cubes,
-      cols,
-      rows,
-      scaleX,
-      scaleY,
-      scaleZ,
-      scene,
-      camera,
-    ),
+  const onSelect = onSelectBuildPixelGrid(
+    reticleStuff,
+    cubes,
+    cols,
+    rows,
+    scaleX,
+    scaleY,
+    scaleZ,
+    scene,
+    camera,
   );
+  controller.addEventListener("select", onSelect);
   scene.add(controller);
 
   animate(
@@ -117,6 +171,73 @@ export default (renderer, params) => {
     rows,
   );
 
-  window.addEventListener("resize", onWindowResize(camera, renderer, window));
+  const onResize = onWindowResize(camera, renderer, window);
+  window.addEventListener("resize", onResize);
+
+  const disposeMaterial = (m) => {
+    if (!m) return;
+    if (Array.isArray(m)) {
+      for (const mm of m) disposeMaterial(mm);
+      return;
+    }
+    if (typeof m.dispose === "function") m.dispose();
+  };
+
+  const disposeObject3D = (obj) => {
+    if (!obj) return;
+    if (obj.geometry && typeof obj.geometry.dispose === "function") obj.geometry.dispose();
+    if (obj.material) disposeMaterial(obj.material);
+  };
+
+  // @ts-ignore - ad-hoc internal property
+  renderer.__bubbleSortCleanup = () => {
+    try {
+      renderer.setAnimationLoop(null);
+    } catch (_) {
+      // ignore
+    }
+
+    // Stop any scheduled unsort/diffusion timers.
+    try {
+      if (cubes && cubes.unsortTimeoutId != null) {
+        // eslint-disable-next-line no-undef
+        if (typeof clearTimeout === "function") clearTimeout(cubes.unsortTimeoutId);
+        cubes.unsortTimeoutId = null;
+      }
+    } catch (_) {
+      // ignore
+    }
+    try {
+      if (cubes && cubes.diffuseIntervalId != null) {
+        // eslint-disable-next-line no-undef
+        if (typeof clearInterval === "function") clearInterval(cubes.diffuseIntervalId);
+        cubes.diffuseIntervalId = null;
+      }
+    } catch (_) {
+      // ignore
+    }
+
+    try {
+      window.removeEventListener("resize", onResize);
+    } catch (_) {
+      // ignore
+    }
+
+    try {
+      controller.removeEventListener("select", onSelect);
+      scene.remove(controller);
+    } catch (_) {
+      // ignore
+    }
+
+    // Dispose scene objects/materials/geometries to free GPU memory.
+    try {
+      if (scene && typeof scene.traverse === "function") {
+        scene.traverse(disposeObject3D);
+      }
+    } catch (_) {
+      // ignore
+    }
+  };
 };
 

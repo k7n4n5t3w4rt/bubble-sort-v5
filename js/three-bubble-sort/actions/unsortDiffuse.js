@@ -94,6 +94,29 @@ const unsortDiffuse = (cubes, options = {}) => {
     return cubes;
   }
 
+  // Reuse buffers to avoid hot-path allocations.
+  // @ts-ignore - ad-hoc fields on cubes
+  if (!cubes.diffuseValuesBuffer || cubes.diffuseValuesBuffer.length !== n) {
+    // @ts-ignore - ad-hoc fields on cubes
+    cubes.diffuseValuesBuffer = new Uint16Array(n);
+  }
+  // @ts-ignore - ad-hoc fields on cubes
+  if (!cubes.diffuseInversionScratch || !cubes.diffuseInversionScratch.bit) {
+    // @ts-ignore - ad-hoc fields on cubes
+    cubes.diffuseInversionScratch = { bit: new Uint32Array(257) };
+  }
+
+  const fillValuesBuffer = () => {
+    // @ts-ignore - ad-hoc fields on cubes
+    const buf = cubes.diffuseValuesBuffer;
+    for (let i = 0; i < n; i++) {
+      const c = cubes.pixelGrid[i];
+      const v = c && Number.isFinite(c.bubble_value) ? c.bubble_value : 0;
+      buf[i] = v & 0xffff;
+    }
+    return buf;
+  };
+
   const resolvedCols =
     (typeof cols === "number" && cols > 0 ? cols : undefined) ??
     (cubes && typeof cubes.gridCols === "number" && cubes.gridCols > 0 ? cubes.gridCols : undefined);
@@ -129,7 +152,8 @@ const unsortDiffuse = (cubes, options = {}) => {
   const startedAt = nowFn();
   let lastTickAt = startedAt;
   let lastCheckAt = startedAt;
-  let lastRatio = inversionRatioFromValues(cubes.pixelGrid.map((c) => c && c.bubble_value));
+  // @ts-ignore - ad-hoc fields on cubes
+  let lastRatio = inversionRatioFromValues(fillValuesBuffer(), cubes.diffuseInversionScratch);
 
   let completed = false;
   const complete = (reason) => {
@@ -141,7 +165,8 @@ const unsortDiffuse = (cubes, options = {}) => {
 
     if (reason === "timeout" || reason === "target") {
       // Compute a final exact ratio for reporting.
-      lastRatio = inversionRatioFromValues(cubes.pixelGrid.map((c) => c && c.bubble_value));
+      // @ts-ignore - ad-hoc fields on cubes
+      lastRatio = inversionRatioFromValues(fillValuesBuffer(), cubes.diffuseInversionScratch);
     }
 
     if (cubes.diffuseIntervalId != null) {
@@ -263,7 +288,8 @@ const unsortDiffuse = (cubes, options = {}) => {
 
     if (t - lastCheckAt >= checkEveryMs) {
       lastCheckAt = t;
-      lastRatio = inversionRatioFromValues(cubes.pixelGrid.map((c) => c && c.bubble_value));
+      // @ts-ignore - ad-hoc fields on cubes
+      lastRatio = inversionRatioFromValues(fillValuesBuffer(), cubes.diffuseInversionScratch);
       if (typeof onProgress === "function") onProgress(lastRatio);
       if (lastRatio >= targetRatio) {
         complete("target");
