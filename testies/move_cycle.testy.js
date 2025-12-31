@@ -28,18 +28,17 @@ test("move() stops after a full no-swap pass and schedules unsort+restart", () =
 
   const cubes = {
     pixelGrid: [makeCube(1), makeCube(2), makeCube(3)], // already sorted
+    gridCols: 3,
     currentIndex: 0,
     moving: false,
     active: true,
     passHadSwap: false,
-    // Inject timer so we can assert scheduling without waiting.
-    setTimeoutFn: (cb, delay) => {
-      captured.cb = cb;
-      captured.delay = delay;
+    // Inject schedule + diffusion timers so we can assert scheduling.
+    scheduleUnsort: (cs, delayMs, unsortFn) => {
+      captured.delay = delayMs;
+      captured.cb = () => unsortFn && unsortFn(cs);
       return 1;
     },
-    clearTimeoutFn: () => { },
-    // Inject interval + clock for diffusion restart.
     setIntervalFn: (cb, ms) => {
       intervalCaptured.cb = cb;
       intervalCaptured.ms = ms;
@@ -90,6 +89,7 @@ test("move() starts a new pass when swaps occurred (does not stop)", () => {
   const cubes = {
     // First comparison needs a swap.
     pixelGrid: [makeCube(2), makeCube(1), makeCube(3)],
+    gridCols: 3,
     currentIndex: 0,
     moving: false,
     active: true,
@@ -108,7 +108,7 @@ test("move() starts a new pass when swaps occurred (does not stop)", () => {
 
   // Continue to end-of-pass; since passHadSwap is true, it should reset for new pass.
   move(cubes, 1, 1, immediateAnime); // compare index 1/2 (no swap)
-  move(cubes, 1, 1, immediateAnime); // end-of-pass (cube2 undefined)
+  move(cubes, 1, 1, immediateAnime); // end-of-pass (cube2 undefined) -> reset state
 
   should(cubes.active).be.exactly(true);
   should(cubes.currentIndex).be.exactly(0);

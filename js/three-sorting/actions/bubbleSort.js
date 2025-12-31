@@ -1,8 +1,9 @@
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
-import scheduleUnsort from "./scheduleUnsort.js";
-import unsortAndStart from "./unsortAndStart.js";
+import { scheduleUnsort } from "./scheduleUnsort.js";
+import { makeUnsortDiffuse } from "./unsortDiffuse.js";
+import swapCubes from "./swapCubes.js";
 
 const nowMs = () => {
   // eslint-disable-next-line no-undef
@@ -52,6 +53,7 @@ const move = (
   scaleZ,
   anime,
 ) => {
+  const doSwap = (from, to) => swapCubes(cubes, from, to, scaleZ, speed, anime);
   // NOTE:
   // This might not be very clear so:
   //
@@ -100,16 +102,60 @@ const move = (
         }
 
         // Repeat: wait 10s, unsort, then start sorting again.
-        const setTimeoutFn =
-          cubes && typeof cubes.setTimeoutFn === "function" ? cubes.setTimeoutFn : setTimeout;
-        const clearTimeoutFn =
-          cubes && typeof cubes.clearTimeoutFn === "function" ? cubes.clearTimeoutFn : clearTimeout;
-        scheduleUnsort(cubes, {
-          delayMs:
-            cubes && typeof cubes.unsortPauseMs === "number" ? cubes.unsortPauseMs : 10_000,
-          setTimeoutFn,
-          clearTimeoutFn,
-          unsortFn: (cs) => unsortAndStart(cs, { startSorting, nowFn: nowMs }),
+        const schedule =
+          cubes && typeof cubes.scheduleUnsort === "function" ? cubes.scheduleUnsort : scheduleUnsort;
+        const delayMs =
+          cubes && typeof cubes.unsortPauseMs === "number" ? cubes.unsortPauseMs : 10_000;
+        schedule(cubes, delayMs, (cs) => {
+          if (!cs.gridCols || cs.gridCols <= 0) {
+            const n = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 1;
+            cs.gridCols = Math.max(1, n);
+          }
+          const runDiffuse = makeUnsortDiffuse(
+            cs && typeof cs.setIntervalFn === "function" ? cs.setIntervalFn : setInterval,
+            cs && typeof cs.clearIntervalFn === "function" ? cs.clearIntervalFn : clearInterval,
+            cs && typeof cs.nowFn === "function" ? cs.nowFn : nowMs,
+          );
+
+          runDiffuse(cs, {
+            targetRatio: cs && typeof cs.diffuseTargetRatio === "number" ? cs.diffuseTargetRatio : 0.5,
+            minMaxMs: cs && typeof cs.diffuseMinMaxMs === "number" ? cs.diffuseMinMaxMs : undefined,
+            swapsPerTick:
+              cs && typeof cs.diffuseSwapsPerTick === "number" && cs.diffuseSwapsPerTick > 0
+                ? cs.diffuseSwapsPerTick
+                : undefined,
+            neighborRadius:
+              cs && typeof cs.diffuseNeighborRadius === "number" ? cs.diffuseNeighborRadius : undefined,
+            randomFn: cs && typeof cs.randomFn === "function" ? cs.randomFn : Math.random,
+            onComplete: ({ ratio, reason, elapsedMs, maxMs }) => {
+              if (reason === "timeout" && typeof cs.logFn === "function") {
+                const cubeCount = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 0;
+                cs.logFn("[unsort] diffuse timeout", {
+                  cubeCount,
+                  inversionRatio: ratio,
+                  elapsedMs,
+                  maxMs,
+                });
+              }
+              cs.moving = false;
+              cs.currentIndex = 0;
+              cs.passHadSwap = false;
+              const n = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 0;
+              cs.passEndIndex = Math.max(0, n - 1);
+              cs.lastSwapIndex = 0;
+              cs.sortStartMs = nowMs();
+              cs.sortEndMs = undefined;
+              cs.sortRunId = (cs.sortRunId || 0) + 1;
+              if (typeof cs.logFn === "function") {
+                const cubeCount = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 0;
+                cs.logFn(
+                  `[sort] #${cs.sortRunId} start`,
+                  { startMs: cs.sortStartMs, cubeCount, inversionRatio: ratio },
+                );
+              }
+              cs.active = true;
+            },
+          });
         });
 
         return cubes;
@@ -151,79 +197,11 @@ const move = (
         // the move has finished and cubes.moving is set back to false
         cubes.moving = true;
 
-        // Move cube1
-        anime({
-          targets: [cube1.position],
-          x: [
-            {
-              value: cube1.position.x - 2 * scaleZ,
-              duration: 1000 / speed / 2,
-              delay: 0,
-            },
-            {
-              value: cube1.position.x,
-              duration: 1000 / speed,
-              delay: 0,
-            },
-          ],
-          z: [
-            {
-              value: cube2.position.z,
-              duration: 1000 / speed,
-              delay: 0,
-            },
-          ],
-          y: [
-            {
-              value: cube2.position.y,
-              duration: 1000 / speed,
-              delay: 0,
-            },
-          ],
-          delay: 500,
-          easing: "easeInOutCirc",
-          complete: function (anim) {
-            // Move cube1
-            movingCube1 = false;
-            if (movingCube2 === false) {
-              cubes.moving = false;
-              cubes.currentIndex = nextIndex;
-              cubes.pixelGrid[currentIndex] = cube2;
-              cubes.pixelGrid[nextIndex] = cube1;
-              return cubes;
-            }
-          },
-        });
-        anime({
-          targets: [cube2.position],
-          x: [
-            {
-              value: cube2.position.x + 2 * scaleZ,
-              duration: 1000 / speed / 2,
-              delay: 0,
-            },
-            {
-              value: cube2.position.x,
-              duration: 1000 / speed,
-              delay: 0,
-            },
-          ],
-          z: [{ value: cube1StartZ, duration: 1000 / speed, delay: 0 }],
-          y: [{ value: cube1StartY, duration: 1000 / speed, delay: 0 }],
-          delay: 500,
-          easing: "easeInOutCirc",
-          complete: function (anim) {
-            // Move cube2
-            movingCube2 = false;
-            if (movingCube1 === false) {
-              cubes.moving = false;
-              cubes.currentIndex = nextIndex;
-              cubes.pixelGrid[currentIndex] = cube2;
-              cubes.pixelGrid[nextIndex] = cube1;
-              return cubes;
-            }
-          },
-        });
+        // Advance index now; animation blocks further move() calls via cubes.moving.
+        cubes.currentIndex = nextIndex;
+
+        // Kick off the swap animation (BubbleSort does not await it here).
+        doSwap(currentIndex, nextIndex);
       }
     } else {
       cubes.currentIndex = nextIndex;

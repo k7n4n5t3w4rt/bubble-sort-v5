@@ -2,8 +2,9 @@
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
-import scheduleUnsort from "./scheduleUnsort.js";
+import { scheduleUnsort } from "./scheduleUnsort.js";
 import unsortAndStart from "./unsortAndStart.js";
+import makeAnimateSwap from "./animateSwap.js";
 
 const nowMs = () => {
   // eslint-disable-next-line no-undef
@@ -30,11 +31,12 @@ const startSelection = (cubes, meta = {}) => {
 };
 
 const move = (
-  cubes /*: Cubes */,
+  cubes /*: CubeState */,
   speed /*: number */,
   scaleZ /*: number */,
   anime /*: function */,
-) /*: Cubes */ => {
+) /*: CubeState */ => {
+  const swapCubes = makeAnimateSwap(scaleZ, speed, anime);
   // NOTE:
   // This might not be very clear so:
   //
@@ -53,17 +55,13 @@ const move = (
       cubes.currentIndex = 0;
       cubes.sortEndMs = nowMs();
 
-      const setTimeoutFn =
-        cubes && typeof cubes.setTimeoutFn === "function" ? cubes.setTimeoutFn : setTimeout;
-      const clearTimeoutFn =
-        cubes && typeof cubes.clearTimeoutFn === "function" ? cubes.clearTimeoutFn : clearTimeout;
-
-      scheduleUnsort(cubes, {
-        delayMs: cubes && typeof cubes.unsortPauseMs === "number" ? cubes.unsortPauseMs : 10_000,
-        setTimeoutFn,
-        clearTimeoutFn,
-        unsortFn: (cs) => unsortAndStart(cs, { startSorting: startSelection, nowFn: nowMs }),
-      });
+      const schedule =
+        cubes && typeof cubes.scheduleUnsort === "function" ? cubes.scheduleUnsort : scheduleUnsort;
+      const delayMs =
+        cubes && typeof cubes.unsortPauseMs === "number" ? cubes.unsortPauseMs : 10_000;
+      schedule(cubes, delayMs, (cs) =>
+        unsortAndStart(cs, { startSorting: startSelection, nowFn: nowMs }),
+      );
 
       return cubes;
     }
@@ -104,87 +102,20 @@ const move = (
         //   `Preparing to swap cubes[${currentIndex}]and cubes[${nextIndex}]...`,
         // );
 
-        const cube1StartPos = {
-          z: cube1.position.z,
-          y: cube1.position.y,
-        };
         // This will cause all calls to move() to have no effect... until
         // the move has finished and cubes.moving is set back to false
         cubes.moving = true;
 
-        // Move cube1
-        anime({
-          targets: [cube1.position],
-          x: [
-            {
-              value: cube1.position.x - 2 * scaleZ,
-              duration: 1000 / speed / 2,
-              delay: 0,
-            },
-            {
-              value: cube1.position.x,
-              duration: 1000 / speed,
-              delay: 0,
-            },
-          ],
-          z: [
-            {
-              value: cube2.position.z,
-              duration: 1000 / speed,
-              delay: 0,
-            },
-          ],
-          y: [
-            {
-              value: cube2.position.y,
-              duration: 1000 / speed,
-              delay: 0,
-            },
-          ],
-          delay: 500,
-          easing: "easeInOutCirc",
-          complete: function (anim) {
-            // Move cube1
+        swapCubes(
+          cubes,
+          currentIndex,
+          indexOfItemWLowestSelectionValue,
+          () => {
             movingCube1 = false;
-            if (movingCube2 === false) {
-              cubes.moving = false;
-              cubes.currentIndex = nextIndex;
-              cubes.pixelGrid[currentIndex] = cube2;
-              cubes.pixelGrid[nextIndex] = cube1;
-              return cubes;
-            }
-          },
-        });
-        anime({
-          targets: [cube2.position],
-          x: [
-            {
-              value: cube2.position.x + 2 * scaleZ,
-              duration: 1000 / speed / 2,
-              delay: 0,
-            },
-            {
-              value: cube2.position.x,
-              duration: 1000 / speed,
-              delay: 0,
-            },
-          ],
-          z: [{ value: cube1StartPos.z, duration: 1000 / speed, delay: 0 }],
-          y: [{ value: cube1StartPos.y, duration: 1000 / speed, delay: 0 }],
-          delay: 500,
-          easing: "easeInOutCirc",
-          complete: function (anim) {
-            // Move cube2
             movingCube2 = false;
-            if (movingCube1 === false) {
-              cubes.moving = false;
-              cubes.currentIndex = nextIndex;
-              cubes.pixelGrid[currentIndex] = cube2;
-              cubes.pixelGrid[indexOfItemWLowestSelectionValue] = cube1;
-              return cubes;
-            }
+            cubes.currentIndex = nextIndex;
           },
-        });
+        );
       }
     } else {
       cubes.currentIndex = nextIndex;

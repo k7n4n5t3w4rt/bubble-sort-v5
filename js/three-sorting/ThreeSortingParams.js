@@ -102,6 +102,7 @@ export default (props) => {
           >
             <option value="bubble">Bubble Sort</option>
             <option value="selection">Selection Sort</option>
+            <option value="quick">Quick Sort</option>
           </select>
         </div>
         <div>

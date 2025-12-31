@@ -1,35 +1,15 @@
+// ------------------------------------------------------------
+// TYPES
+// ------------------------------------------------------------
+/** @typedef {import("./types.js").Cube} Cube */
+// ------------------------------------------------------------
+// HELPERS
+// ------------------------------------------------------------
 import { inversionRatioFromValues } from "./inversionRatio.js";
-
-const nowMs = () => {
-  // eslint-disable-next-line no-undef
-  if (typeof performance !== "undefined" && typeof performance.now === "function") {
-    return performance.now();
-  }
-  return Date.now();
-};
-
-const setCubeGreyscale = (cube, v) => {
-  if (
-    cube &&
-    cube.material &&
-    cube.material.color &&
-    typeof cube.material.color.setRGB === "function"
-  ) {
-    const f = Math.max(0, Math.min(255, v)) / 255;
-    cube.material.color.setRGB(f, f, f);
-    return;
-  }
-
-  if (
-    cube &&
-    cube.material &&
-    cube.material.color &&
-    typeof cube.material.color.setStyle === "function"
-  ) {
-    const vv = Math.max(0, Math.min(255, v));
-    cube.material.color.setStyle(`rgb(${vv},${vv},${vv})`);
-  }
-};
+import nowMs from "./nowMs.js";
+import setCubeGreyscale from "./setCubeGreyscale.js";
+import fillValuesBuffer from "./fillValuesBuffer.js";
+import makeDiffuseTick from "./makeDiffuseTick.js";
 
 /**
  * Progressive "unsort" diffusion: cubes do not move; values/colors diffuse via many
@@ -37,278 +17,207 @@ const setCubeGreyscale = (cube, v) => {
  *
  * Timer/random sources are injectable for deterministic tests.
  *
- * @param {any} cubes
- * @param {{
- *   targetRatio?: number,
- *   maxMs?: number,
- *   msPerCube?: number,
- *   minMaxMs?: number,
- *   cols?: number,
- *   neighborRadius?: number,
- *   tickMs?: number,
- *   checkEveryMs?: number,
- *   maxCatchUpSteps?: number,
- *   swapsPerTick?: number,
- *   randomFn?: () => number,
- *   setIntervalFn?: (cb: (...args:any[]) => void, ms: number) => any,
- *   clearIntervalFn?: (id: any) => void,
- *   nowFn?: () => number,
- *   onProgress?: (ratio: number) => void,
- *   onComplete?: (info: { ratio: number, reason: "target" | "timeout" | "noop", elapsedMs?: number, maxMs?: number }) => void,
- * }} options
- * @returns {any}
+ * @param {Cube[]} cubes
+ * @typedef {Object} UnsortDiffuseDeps
+ * @property {(cb: (...args:any[]) => void, ms: number) => any} [setInterval]
+ * @property {(id: any) => void} [clearInterval]
+ * @property {() => number} [nowFn]
  */
-const unsortDiffuse = (cubes, options = {}) => {
-  const {
-    targetRatio = 0.5,
-    maxMs,
-    // Default scaling: 50 cubes => 20s. Keep a 5s minimum for tiny grids.
-    msPerCube = 400,
-    minMaxMs = 5000,
-    cols,
-    neighborRadius = 1,
-    tickMs = 16,
-    checkEveryMs = 100,
-    maxCatchUpSteps = 120,
-    swapsPerTick,
-    randomFn = Math.random,
-    setIntervalFn = setInterval,
-    clearIntervalFn = clearInterval,
-    nowFn = nowMs,
-    onProgress,
-    onComplete,
-  } = options;
 
-  if (typeof onComplete !== "function") {
-    throw new Error("unsortDiffuse requires options.onComplete");
-  }
+/**
+ * @typedef {Object} UnsortDiffuseOptions
+ * @property {number} [targetRatio]
+ * @property {number} [maxMs]
+ * @property {number} [msPerCube]
+ * @property {number} [minMaxMs]
+ * @property {number} [cols]
+ * @property {number} [neighborRadius]
+ * @property {number} [tickMs]
+ * @property {number} [checkEveryMs]
+ * @property {number} [maxCatchUpSteps]
+ * @property {number} [swapsPerTick]
+ * @property {() => number} [randomFn]
+ * @property {(ratio: number) => void} [onProgress]
+ * @property {(info: { ratio: number, reason: "target" | "timeout" | "noop", elapsedMs?: number, maxMs?: number }) => void} [onComplete]
+ */
 
-  if (!cubes || !Array.isArray(cubes.pixelGrid)) {
-    onComplete({ ratio: 0, reason: "noop" });
-    return cubes;
-  }
+/**
+ * Factory to create an unsortDiffuse function with injected timers.
+ * @param {(cb: (...args:any[]) => any, ms: number) => any} [setInterval]
+ * @param {(id: any) => void} [clearInterval]
+ * @param {() => number} [nowFn]
+ */
+export const makeUnsortDiffuse = (
+  setInterval = globalThis.setInterval,
+  clearInterval = globalThis.clearInterval,
+  nowFn = nowMs,
+) => {
 
-  const n = cubes.pixelGrid.length;
-  if (n < 2) {
-    onComplete({ ratio: 0, reason: "noop" });
-    return cubes;
-  }
+  /**
+   * @param {any} cubes
+   * @param {UnsortDiffuseOptions} [options]
+   * @returns {any}
+   */
+  return (cubes, options = {}) => {
+    const {
+      targetRatio = 0.5,
+      maxMs,
+      // Default scaling: 50 cubes => 20s. Keep a 5s minimum for tiny grids.
+      msPerCube = 400,
+      minMaxMs = 5000,
+      cols,
+      neighborRadius = 1,
+      tickMs = 16,
+      checkEveryMs = 100,
+      maxCatchUpSteps = 120,
+      swapsPerTick,
+      randomFn = Math.random,
+      onProgress,
+      onComplete,
+    } = options;
 
-  // Reuse buffers to avoid hot-path allocations.
-  // @ts-ignore - ad-hoc fields on cubes
-  if (!cubes.diffuseValuesBuffer || cubes.diffuseValuesBuffer.length !== n) {
-    // @ts-ignore - ad-hoc fields on cubes
-    cubes.diffuseValuesBuffer = new Uint16Array(n);
-  }
-  // @ts-ignore - ad-hoc fields on cubes
-  if (!cubes.diffuseInversionScratch || !cubes.diffuseInversionScratch.bit) {
-    // @ts-ignore - ad-hoc fields on cubes
-    cubes.diffuseInversionScratch = { bit: new Uint32Array(257) };
-  }
-
-  const fillValuesBuffer = () => {
-    // @ts-ignore - ad-hoc fields on cubes
-    const buf = cubes.diffuseValuesBuffer;
-    for (let i = 0; i < n; i++) {
-      const c = cubes.pixelGrid[i];
-      const v = c && Number.isFinite(c.bubble_value) ? c.bubble_value : 0;
-      buf[i] = v & 0xffff;
+    if (typeof onComplete !== "function") {
+      throw new Error("unsortDiffuse requires options.onComplete");
     }
-    return buf;
-  };
 
-  const resolvedCols =
-    (typeof cols === "number" && cols > 0 ? cols : undefined) ??
-    (cubes && typeof cubes.gridCols === "number" && cubes.gridCols > 0 ? cubes.gridCols : undefined);
-  const use2D = typeof resolvedCols === "number" && resolvedCols > 0 && n % resolvedCols === 0;
-  const r0 = Number.isFinite(Number(neighborRadius)) ? Math.floor(Number(neighborRadius)) : 1;
-  const radius = Math.max(1, Math.min(10, r0));
+    if (!cubes || !Array.isArray(cubes.pixelGrid)) {
+      onComplete({ ratio: 0, reason: "noop" });
+      return cubes;
+    }
 
-  const effectiveMaxMs =
-    typeof maxMs === "number" && Number.isFinite(maxMs)
-      ? Math.max(0, maxMs)
-      : Math.max(0, minMaxMs, n * msPerCube);
+    const n = cubes.pixelGrid.length;
+    if (n < 2) {
+      onComplete({ ratio: 0, reason: "noop" });
+      return cubes;
+    }
 
-  // Cancel any existing diffusion loop.
-  if (cubes.diffuseIntervalId != null && typeof clearIntervalFn === "function") {
-    clearIntervalFn(cubes.diffuseIntervalId);
-  }
-
-  cubes.active = false;
-  cubes.diffusing = true;
-
-  // Token guard to prevent stale overlapping intervals from mutating state.
-  cubes.diffuseRunToken = (cubes.diffuseRunToken || 0) + 1;
-  const runToken = cubes.diffuseRunToken;
-
-  // Pick swaps per tick so total swaps scales ~ O(n^2) given maxMs ~ O(n).
-  // This avoids large grids "barely moving" visually.
-  const effectiveSwapsPerTick =
-    typeof swapsPerTick === "number" && swapsPerTick > 0
-      ? Math.floor(swapsPerTick)
-      : Math.max(1, Math.floor(n / 5));
-  const cappedSwapsPerTick = Math.min(effectiveSwapsPerTick, 2000);
-
-  const startedAt = nowFn();
-  let lastTickAt = startedAt;
-  let lastCheckAt = startedAt;
-  // @ts-ignore - ad-hoc fields on cubes
-  let lastRatio = inversionRatioFromValues(fillValuesBuffer(), cubes.diffuseInversionScratch);
-
-  let completed = false;
-  const complete = (reason) => {
-    if (completed) return;
-    completed = true;
-
-    const endedAt = nowFn();
-    const elapsedMs = Math.max(0, endedAt - startedAt);
-
-    if (reason === "timeout" || reason === "target") {
-      // Compute a final exact ratio for reporting.
+    // Reuse buffers to avoid hot-path allocations.
+    // @ts-ignore - ad-hoc fields on cubes
+    if (!cubes.diffuseValuesBuffer || cubes.diffuseValuesBuffer.length !== n) {
       // @ts-ignore - ad-hoc fields on cubes
-      lastRatio = inversionRatioFromValues(fillValuesBuffer(), cubes.diffuseInversionScratch);
+      cubes.diffuseValuesBuffer = new Uint16Array(n);
+    }
+    // @ts-ignore - ad-hoc fields on cubes
+    if (!cubes.diffuseInversionScratch || !cubes.diffuseInversionScratch.bit) {
+      // @ts-ignore - ad-hoc fields on cubes
+      cubes.diffuseInversionScratch = { bit: new Uint32Array(257) };
     }
 
-    if (cubes.diffuseIntervalId != null) {
-      if (typeof clearIntervalFn === "function") clearIntervalFn(cubes.diffuseIntervalId);
-      // Extra safety: attempt global clearInterval too (helps if a custom timer impl is used).
-      // eslint-disable-next-line no-undef
-      if (typeof clearInterval === "function") clearInterval(cubes.diffuseIntervalId);
-    }
-    cubes.diffuseIntervalId = null;
-    cubes.diffusing = false;
+    const resolvedCols =
+      typeof cols === "number" && cols > 0 ? cols : Math.max(1, Number(cubes.gridCols || 1));
+    const use2D = resolvedCols > 0 && n % resolvedCols === 0;
+    const r0 = Number.isFinite(Number(neighborRadius)) ? Math.floor(Number(neighborRadius)) : 1;
+    const radius = Math.max(1, Math.min(10, r0));
 
-    onComplete({ ratio: lastRatio, reason, elapsedMs, maxMs: effectiveMaxMs });
-  };
+    const effectiveMaxMs =
+      typeof maxMs === "number" && Number.isFinite(maxMs)
+        ? Math.max(0, maxMs)
+        : Math.max(0, minMaxMs, n * msPerCube);
 
-  if (lastRatio >= targetRatio) {
-    complete("target");
-    return cubes;
-  }
-
-  cubes.diffuseIntervalId = setIntervalFn(() => {
-    if (cubes.diffuseRunToken !== runToken) return;
-
-    const t = nowFn();
-    if (t - startedAt >= effectiveMaxMs) {
-      complete("timeout");
-      return;
+    // Cancel any existing diffusion loop.
+    if (cubes.diffuseIntervalId != null && typeof clearInterval === "function") {
+      clearInterval(cubes.diffuseIntervalId);
     }
 
-    // If timers get throttled (common in XR / background tabs), "catch up" by
-    // running multiple logical ticks worth of swaps based on elapsed time.
-    const dt = Math.max(0, t - lastTickAt);
-    lastTickAt = t;
-    const rawSteps = tickMs > 0 ? Math.floor(dt / tickMs) : 1;
-    const steps = Math.min(
-      Math.max(1, rawSteps),
-      typeof maxCatchUpSteps === "number" && maxCatchUpSteps > 0 ? maxCatchUpSteps : 120,
+    cubes.active = false;
+    cubes.diffusing = true;
+
+    // Token guard to prevent stale overlapping intervals from mutating state.
+    cubes.diffuseRunToken = (cubes.diffuseRunToken || 0) + 1;
+    const runToken = cubes.diffuseRunToken;
+
+    // Pick swaps per tick so total swaps scales ~ O(n^2) given maxMs ~ O(n).
+    // This avoids large grids "barely moving" visually.
+    const effectiveSwapsPerTick =
+      typeof swapsPerTick === "number" && swapsPerTick > 0
+        ? Math.floor(swapsPerTick)
+        : Math.max(1, Math.floor(n / 5));
+    const cappedSwapsPerTick = Math.min(effectiveSwapsPerTick, 2000);
+
+    const startedAt = nowFn();
+    let lastTickAt = startedAt;
+    let lastCheckAt = startedAt;
+    // @ts-ignore - ad-hoc fields on cubes
+    let lastRatio = inversionRatioFromValues(
+      fillValuesBuffer(cubes, n),
+      cubes.diffuseInversionScratch,
     );
 
-    const doSwaps = () => {
-      for (let s = 0; s < cappedSwapsPerTick; s++) {
-        let i = Math.floor(randomFn() * n);
-        if (i < 0) i = 0;
-        if (i >= n) i = n - 1;
+    const completedRef = { value: false };
+    const complete = (reason) => {
+      if (completedRef.value) return;
+      completedRef.value = true;
 
-        let j = i + 1;
+      const endedAt = nowFn();
+      const elapsedMs = Math.max(0, endedAt - startedAt);
 
-        if (use2D) {
-          const c = resolvedCols;
-          const r = Math.floor(i / c);
-          const cc = i % c;
-
-          if (radius <= 1) {
-            const dir = Math.floor(randomFn() * 4); // 0=R,1=L,2=D,3=U
-            if (dir === 0 && cc + 1 < c) j = i + 1;
-            else if (dir === 1 && cc - 1 >= 0) j = i - 1;
-            else if (dir === 2 && (r + 1) * c + cc < n) j = i + c;
-            else if (dir === 3 && r - 1 >= 0) j = i - c;
-            else {
-              if (cc + 1 < c) j = i + 1;
-              else if (cc - 1 >= 0) j = i - 1;
-              else if ((r + 1) * c + cc < n) j = i + c;
-              else if (r - 1 >= 0) j = i - c;
-            }
-          } else {
-            // "Neighbors-of-neighbors": pick a random offset within a Manhattan-ish radius
-            // but keep it local to preserve the visual diffusion feel.
-            // Try a few samples; if we fail (edges/corners), fall back to radius=1.
-            let found = false;
-            for (let tries = 0; tries < 8; tries++) {
-              const dx = Math.floor(randomFn() * (2 * radius + 1)) - radius;
-              const dy = Math.floor(randomFn() * (2 * radius + 1)) - radius;
-              if (dx === 0 && dy === 0) continue;
-
-              const rr = r + dy;
-              const ccc = cc + dx;
-              if (rr < 0 || ccc < 0) continue;
-              if (rr >= n / c || ccc >= c) continue;
-              const idx = rr * c + ccc;
-              if (idx < 0 || idx >= n) continue;
-              j = idx;
-              found = true;
-              break;
-            }
-            if (!found) {
-              if (cc + 1 < c) j = i + 1;
-              else if (cc - 1 >= 0) j = i - 1;
-              else if ((r + 1) * c + cc < n) j = i + c;
-              else if (r - 1 >= 0) j = i - c;
-            }
-          }
-        } else {
-          // 1D neighborhood: allow jumps within radius.
-          // Note: radius=1 preserves prior behavior (adjacent).
-          const span = 2 * radius + 1;
-          let off = Math.floor(randomFn() * span) - radius;
-          if (off === 0) off = randomFn() < 0.5 ? -1 : 1;
-          j = i + off;
-          if (j < 0) j = 0;
-          if (j >= n) j = n - 1;
-          if (j === i) j = i === 0 ? 1 : i - 1;
-        }
-
-        const a = cubes.pixelGrid[i];
-        const b = cubes.pixelGrid[j];
-        if (!a || !b) continue;
-
-        const tmpBubble = a.bubble_value;
-        const tmpSelection = a.selection_value;
-        const tmpValue = a.value;
-
-        a.bubble_value = b.bubble_value;
-        b.bubble_value = tmpBubble;
-
-        a.selection_value = b.selection_value;
-        b.selection_value = tmpSelection;
-
-        a.value = b.value;
-        b.value = tmpValue;
-
-        setCubeGreyscale(a, a.bubble_value);
-        setCubeGreyscale(b, b.bubble_value);
+      if (reason === "timeout" || reason === "target") {
+        // Compute a final exact ratio for reporting.
+        // @ts-ignore - ad-hoc fields on cubes
+        lastRatio = inversionRatioFromValues(
+          fillValuesBuffer(cubes, n),
+          cubes.diffuseInversionScratch,
+        );
       }
+
+      if (cubes.diffuseIntervalId != null) {
+        if (typeof clearInterval === "function") clearInterval(cubes.diffuseIntervalId);
+        // Extra safety: attempt global clearInterval too (helps if a custom timer impl is used).
+        // eslint-disable-next-line no-undef
+        if (clearInterval !== globalThis.clearInterval && typeof globalThis.clearInterval === "function") {
+          globalThis.clearInterval(cubes.diffuseIntervalId);
+        }
+      }
+      cubes.diffuseIntervalId = null;
+      cubes.diffusing = false;
+
+      onComplete({ ratio: lastRatio, reason, elapsedMs, maxMs: effectiveMaxMs });
     };
 
-    for (let step = 0; step < steps; step++) {
-      if (cubes.diffuseRunToken !== runToken || completed) return;
-      doSwaps();
+    if (lastRatio >= targetRatio) {
+      complete("target");
+      return cubes;
     }
 
-    if (t - lastCheckAt >= checkEveryMs) {
-      lastCheckAt = t;
-      // @ts-ignore - ad-hoc fields on cubes
-      lastRatio = inversionRatioFromValues(fillValuesBuffer(), cubes.diffuseInversionScratch);
-      if (typeof onProgress === "function") onProgress(lastRatio);
-      if (lastRatio >= targetRatio) {
-        complete("target");
-      }
-    }
-  }, tickMs);
+    const state = {
+      lastTickAt,
+      lastCheckAt,
+      lastRatio,
+      startedAt,
+      completedRef,
+    };
 
-  return cubes;
+    const tick = makeDiffuseTick({
+      cubes,
+      n,
+      runToken,
+      effectiveMaxMs,
+      tickMs,
+      maxCatchUpSteps,
+      cappedSwapsPerTick,
+      use2D,
+      resolvedCols,
+      radius,
+      randomFn,
+      setCubeGreyscale,
+      checkEveryMs,
+      targetRatio,
+      onProgress: /** @type {((ratio:number)=>void)|undefined} */ (onProgress),
+      complete,
+      nowFn: /** @type {() => number} */ (nowFn),
+      state,
+      fillValuesBuffer,
+      inversionRatioFromValues,
+    });
+
+    cubes.diffuseIntervalId = setInterval(tick, tickMs);
+
+    return cubes;
+  };
 };
 
+const unsortDiffuse = makeUnsortDiffuse();
+// Export the function that uses the global setInterval and clearInterval as
+// default
 export default unsortDiffuse;
 

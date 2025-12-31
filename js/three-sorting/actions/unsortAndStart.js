@@ -11,6 +11,8 @@ const defaultNowMs = () => {
 /**
  * Runs the diffusion/unsort phase, then invokes the provided startSorting callback.
  * Accepts optional injected timing/random sources for deterministic tests.
+ * @param {any} cubes
+ * @param {{ startSorting?: (cubes: any, meta?: any) => void, nowFn?: () => number }} [options]
  */
 export default function unsortAndStart(
   cubes,
@@ -22,6 +24,10 @@ export default function unsortAndStart(
   if (typeof startSorting !== "function") return;
 
   cubes.active = false;
+  if (!cubes.gridCols || cubes.gridCols <= 0) {
+    const n = Array.isArray(cubes.pixelGrid) ? cubes.pixelGrid.length : 1;
+    cubes.gridCols = Math.max(1, n);
+  }
 
   unsortDiffuse(cubes, {
     targetRatio:

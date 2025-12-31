@@ -8,7 +8,7 @@ import { test, should } from "../server/testy.js";
 import * as THREE from "three";
 import pixelGrid from "../js/three-sorting/actions/pixelGrid.js";
 import unsort from "../js/three-sorting/actions/unsort.js";
-import scheduleUnsort from "../js/three-sorting/actions/scheduleUnsort.js";
+import { makeScheduleUnsort } from "../js/three-sorting/actions/scheduleUnsort.js";
 
 test("unsort() makes a sorted pixelGrid no longer sorted (deterministic shuffle)", () => {
   const cols = 6;
@@ -67,12 +67,9 @@ test("scheduleUnsort() schedules unsort after 10s and calls unsort via injected 
     calls.push(cubes);
   };
 
+  const schedule = makeScheduleUnsort(fakeSetTimeout);
   const cubes = { pixelGrid: [] };
-  const id = scheduleUnsort(cubes, {
-    delayMs: 10_000,
-    setTimeoutFn: fakeSetTimeout,
-    unsortFn: fakeUnsort,
-  });
+  const id = schedule(cubes, 10_000, fakeUnsort);
 
   should(id).be.exactly(123);
   should(captured.delay).be.exactly(10_000);

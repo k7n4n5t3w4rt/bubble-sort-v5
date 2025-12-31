@@ -5,17 +5,26 @@ import { test, should } from "../server/testy.js";
 //------------------------------------------------------------------
 // IMPORT: FUNCTIONS UNDER TEST
 //------------------------------------------------------------------
-import unsortDiffuse from "../js/three-sorting/actions/unsortDiffuse.js";
+import unsortDiffuse, { makeUnsortDiffuse } from "../js/three-sorting/actions/unsortDiffuse.js";
 import { inversionRatioFromValues } from "../js/three-sorting/actions/inversionRatio.js";
 
 const makeCube = (v) => ({
   bubble_value: v,
-  // material/color are optional; unsortDiffuse is defensive.
+  selection_value: v,
+  value: v,
+  position: { x: 0, y: 0, z: 0 },
+  material: {
+    color: {
+      setRGB: () => {},
+      setStyle: () => {},
+    },
+  },
 });
 
 test("unsortDiffuse() increases inversion ratio and calls onComplete (deterministic timers)", () => {
   const cubes = {
     pixelGrid: Array.from({ length: 10 }, (_, i) => makeCube(i)), // sorted
+    gridCols: 10,
   };
 
   const before = cubes.pixelGrid.map((c) => c.bubble_value);
@@ -31,7 +40,7 @@ test("unsortDiffuse() increases inversion ratio and calls onComplete (determinis
     intervalCaptured.ms = ms;
     return 1;
   };
-  const clearIntervalFn = () => { };
+  const clearIntervalFn = () => {};
   const nowFn = () => t;
 
   // Deterministic RNG (LCG) so multiple random() calls per tick stay repeatable.
@@ -45,16 +54,15 @@ test("unsortDiffuse() increases inversion ratio and calls onComplete (determinis
   /** @type {{ info: any }[]} */
   const completes = [];
 
-  unsortDiffuse(cubes, {
+  const runDiffuse = makeUnsortDiffuse(setIntervalFn, clearIntervalFn, nowFn);
+
+  runDiffuse(cubes, {
     targetRatio: 0.5,
     maxMs: 250,
     tickMs: 1,
     checkEveryMs: 1,
     swapsPerTick: 5,
     randomFn,
-    setIntervalFn,
-    clearIntervalFn,
-    nowFn,
     onComplete: (info) => completes.push({ info }),
   });
 

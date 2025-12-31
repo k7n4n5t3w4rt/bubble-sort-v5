@@ -1,48 +1,54 @@
-
+// ------------------------------------------------------------
+// TYPES
+// ------------------------------------------------------------
+/** @typedef {import("./types.js").CubeState} CubeState */
+// ------------------------------------------------------------
+// HELPERS
+// ------------------------------------------------------------
 import unsort from "./unsort.js";
 
 /**
- * @typedef {Object} ScheduleUnsortOptions
- * @property {number} [delayMs]
- * @property {(cb: (...args:any[]) => void, delayMs: number) => any} [setTimeoutFn]
- * @property {(id: any) => void} [clearTimeoutFn]
- * @property {(cubes: any) => any} [unsortFn]
- */
-
-/**
- * Schedule unsort to run after a delay. Timer functions are injectable for tests.
+ * Factory that returns an unsort scheduler with injected timers (defaults to globals)
  *
- * @param {any} cubes
- * @param {ScheduleUnsortOptions} [options]
- * @returns {any}
+ * @param {Function} setTimeout
+ * @param {Function} clearTimeout
  */
-export const scheduleUnsort = (cubes, options = {}) => {
-    if (!cubes) return null;
+export const makeScheduleUnsort = (
+    setTimeout = globalThis.setTimeout,
+    clearTimeout = globalThis.clearTimeout,
+) => {
 
-    const {
+    /**
+     * Schedule unsort to run after a delay.
+     * @param {CubeState} cubes
+     * @param {number} delayMs
+     * @param {Function} unsortFn
+     * @returns {any}
+     */
+    return (
+        cubes,
         delayMs = 10_000,
-        setTimeoutFn = setTimeout,
-        clearTimeoutFn = clearTimeout,
-        unsortFn,
-    } = options;
+        unsortFn
+    ) => {
+        if (!cubes) return null;
 
-    if (cubes.unsortTimeoutId != null && typeof clearTimeoutFn === "function") {
-        clearTimeoutFn(cubes.unsortTimeoutId);
-    }
-
-    // Note: keep scheduling simple; caller can inject setTimeout for tests.
-    // $FlowFixMe - setTimeout return types vary across environments
-    cubes.unsortTimeoutId = setTimeoutFn(() => {
-        if (typeof unsortFn === "function") {
-            unsortFn(cubes);
-        } else {
-            unsort(cubes);
+        if (cubes.unsortTimeoutId != null) {
+            clearTimeout(cubes.unsortTimeoutId);
         }
-    }, delayMs);
 
-    return cubes.unsortTimeoutId;
+        cubes.unsortTimeoutId = setTimeout(() => {
+            if (typeof unsortFn === "function") {
+                unsortFn(cubes);
+            } else {
+                unsort(cubes);
+            }
+        }, delayMs);
+
+        return cubes.unsortTimeoutId;
+    };
 };
 
+export const scheduleUnsort = makeScheduleUnsort();
+// Export the function that uses the global setTimeout and clearTimeout as
+// default
 export default scheduleUnsort;
-
-

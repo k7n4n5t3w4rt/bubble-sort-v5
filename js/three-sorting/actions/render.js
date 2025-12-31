@@ -7,6 +7,7 @@ import * as THREE from "three";
 // --------------------------------------------------
 import bubbleSort from "./bubbleSort.js";
 import selectionSort from "./selectionSort.js";
+import quickSort from "./quickSort.js";
 import initializeHitTestSource from "./initializeHitTestSource.js";
 import anime from "animejs/lib/anime.es.js";
 
@@ -65,7 +66,12 @@ export default (
     }
 
     if (cubes && cubes.pixelGrid !== undefined && cubes.active === true) {
-      const sorter = algorithm === "selection" ? selectionSort : bubbleSort;
+      const sorter =
+        algorithm === "selection"
+          ? selectionSort
+          : algorithm === "quick"
+            ? quickSort
+            : bubbleSort;
       sorter(cubes, speed, scaleZ, anime);
     }
 
