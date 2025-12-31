@@ -8,6 +8,7 @@ export default (cols, rows, speed, scaleX, scaleY, scaleZ, diffusionParams = {})
 
   const params = { cols, rows, speed, scaleX, scaleY, scaleZ, ...diffusionParams };
   const {
+    algorithm,
     diffuseTargetRatio,
     diffuseMinMaxMs,
     diffuseSwapsPerTick,
@@ -19,6 +20,7 @@ export default (cols, rows, speed, scaleX, scaleY, scaleZ, diffusionParams = {})
     `/?speed=${speed}` +
     `&scalex=${scaleX}&scaley=${scaleY}&scalez=${scaleZ}` +
     `&cols=${cols}&rows=${rows}` +
+    `&algorithm=${algorithm ?? ""}` +
     `&diffuseTargetRatio=${diffuseTargetRatio ?? ""}` +
     `&diffuseMinMaxMs=${diffuseMinMaxMs ?? ""}` +
     `&diffuseSwapsPerTick=${diffuseSwapsPerTick ?? ""}` +

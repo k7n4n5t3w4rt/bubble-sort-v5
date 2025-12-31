@@ -5,8 +5,8 @@ import { test, should } from "../server/testy.js";
 //------------------------------------------------------------------
 // IMPORT: FUNCTIONS UNDER TEST
 //------------------------------------------------------------------
-import unsortDiffuse from "../js/three-bubble-sort/actions/unsortDiffuse.js";
-import { inversionRatioFromValues } from "../js/three-bubble-sort/actions/inversionRatio.js";
+import unsortDiffuse from "../js/three-sorting/actions/unsortDiffuse.js";
+import { inversionRatioFromValues } from "../js/three-sorting/actions/inversionRatio.js";
 
 const makeCube = (v) => ({
   bubble_value: v,

@@ -273,9 +273,19 @@ const unsortDiffuse = (cubes, options = {}) => {
         const b = cubes.pixelGrid[j];
         if (!a || !b) continue;
 
-        const tmp = a.bubble_value;
+        const tmpBubble = a.bubble_value;
+        const tmpSelection = a.selection_value;
+        const tmpValue = a.value;
+
         a.bubble_value = b.bubble_value;
-        b.bubble_value = tmp;
+        b.bubble_value = tmpBubble;
+
+        a.selection_value = b.selection_value;
+        b.selection_value = tmpSelection;
+
+        a.value = b.value;
+        b.value = tmpValue;
+
         setCubeGreyscale(a, a.bubble_value);
         setCubeGreyscale(b, b.bubble_value);
       }

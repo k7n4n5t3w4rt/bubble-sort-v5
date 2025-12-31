@@ -67,6 +67,7 @@ export default (props) => {
   const scaleX = props.scaleX;
   const scaleY = props.scaleY;
   const scaleZ = props.scaleZ;
+  const algorithm = props.algorithm || "bubble";
   const diffuseTargetRatio = props.diffuseTargetRatio ?? 0.5;
   const diffuseMinMaxMs = props.diffuseMinMaxMs ?? 5000;
   const diffuseSwapsPerTick = props.diffuseSwapsPerTick ?? 0;
@@ -91,6 +92,18 @@ export default (props) => {
   return html`
     <div id="params-container" className="${styles.paramsContainer}">
       <fieldset>
+        <div>
+          <label for="algorithm">Algorithm:</label>
+          <select
+            id="algorithm"
+            name="algorithm"
+            value="${algorithm}"
+            onChange=${changeParam(dispatch, "algorithm")}
+          >
+            <option value="bubble">Bubble Sort</option>
+            <option value="selection">Selection Sort</option>
+          </select>
+        </div>
         <div>
           <label for="cols">Columns:</label>
           <output id="colsOutput" name="colsOutput" for="cols"

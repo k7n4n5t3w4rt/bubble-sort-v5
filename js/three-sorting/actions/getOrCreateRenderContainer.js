@@ -1,12 +1,12 @@
 export default () => {
-  const bubbleSort = document.getElementById("bubble-sort");
-  if (!bubbleSort) return null;
+  const root = document.getElementById("sorting-vis");
+  if (!root) return null;
 
   let container = document.getElementById("ar-container");
   if (!container) {
     container = document.createElement("div");
     container.id = "ar-container";
-    bubbleSort.appendChild(container);
+    root.appendChild(container);
   }
 
   // Ensure visibility and sizing (CSS defaults to display:none).

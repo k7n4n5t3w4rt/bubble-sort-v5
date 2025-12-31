@@ -20,6 +20,7 @@ export default (renderer, params) => {
     scaleX,
     scaleY,
     scaleZ,
+    algorithm = "bubble",
     diffuseTargetRatio,
     diffuseMinMaxMs,
     diffuseSwapsPerTick,
@@ -169,6 +170,7 @@ export default (renderer, params) => {
     scaleZ,
     cols,
     rows,
+    algorithm,
   );
 
   const onResize = onWindowResize(camera, renderer, window);

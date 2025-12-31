@@ -5,7 +5,8 @@ import * as THREE from "three";
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
-import move from "./move.js";
+import bubbleSort from "./bubbleSort.js";
+import selectionSort from "./selectionSort.js";
 import initializeHitTestSource from "./initializeHitTestSource.js";
 import anime from "animejs/lib/anime.es.js";
 
@@ -17,6 +18,7 @@ export default (
   scaleZm,
   cols,
   rows,
+  algorithm = "bubble",
 ) => {
   return async (timestamp, frame) => {
     const scaleX = scaleXm / 100;
@@ -63,7 +65,8 @@ export default (
     }
 
     if (cubes && cubes.pixelGrid !== undefined && cubes.active === true) {
-      move(cubes, speed, scaleZ, anime);
+      const sorter = algorithm === "selection" ? selectionSort : bubbleSort;
+      sorter(cubes, speed, scaleZ, anime);
     }
 
     if (stats && typeof stats.update === "function") stats.update();

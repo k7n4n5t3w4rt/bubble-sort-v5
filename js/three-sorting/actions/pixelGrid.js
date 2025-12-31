@@ -23,7 +23,7 @@ export default (
   const pixelGridGroup = new THREE.Group();
 
   // Pre-generate and sort values so the grid starts "already sorted"
-  // according to the comparison rule used in `actions/move.js`:
+  // according to the comparison rule used in `actions/bubbleSort.js`:
   // swap when left > right => sorted is ascending (non-decreasing) in array order.
   const totalCells  = rows * cols;
   const sortedValues  = Array.from(
@@ -45,7 +45,9 @@ export default (
 
       cube.position.z = j * scaleZ;
       cube.position.y = i * scaleY;
+      cube.value = cellColour;
       cube.bubble_value = cellColour;
+      cube.selection_value = cellColour;
       cube.castShadow = true;
       pixelGridGroup.add(cube);
       pixelGridCubes.push(cube);

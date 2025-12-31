@@ -6,7 +6,7 @@ import { test, should } from "../server/testy.js";
 // IMPORT: THREE + FUNCTION UNDER TEST
 //------------------------------------------------------------------
 import * as THREE from "three";
-import pixelGrid from "../js/three-bubble-sort/actions/pixelGrid.js";
+import pixelGrid from "../js/three-sorting/actions/pixelGrid.js";
 
 test("pixelGrid() starts already sorted by bubble_value (ascending)", () => {
   const cols = 6;

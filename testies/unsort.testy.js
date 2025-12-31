@@ -6,9 +6,9 @@ import { test, should } from "../server/testy.js";
 // IMPORT: THREE + FUNCTIONS UNDER TEST
 //------------------------------------------------------------------
 import * as THREE from "three";
-import pixelGrid from "../js/three-bubble-sort/actions/pixelGrid.js";
-import unsort from "../js/three-bubble-sort/actions/unsort.js";
-import scheduleUnsort from "../js/three-bubble-sort/actions/scheduleUnsort.js";
+import pixelGrid from "../js/three-sorting/actions/pixelGrid.js";
+import unsort from "../js/three-sorting/actions/unsort.js";
+import scheduleUnsort from "../js/three-sorting/actions/scheduleUnsort.js";
 
 test("unsort() makes a sorted pixelGrid no longer sorted (deterministic shuffle)", () => {
   const cols = 6;
@@ -82,6 +82,7 @@ test("scheduleUnsort() schedules unsort after 10s and calls unsort via injected 
   should(calls.length).be.exactly(1);
   should(calls[0]).be.exactly(cubes);
 });
+
 
 
 

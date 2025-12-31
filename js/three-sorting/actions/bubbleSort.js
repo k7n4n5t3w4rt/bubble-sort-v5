@@ -2,7 +2,7 @@
 // HELPERS
 // --------------------------------------------------
 import scheduleUnsort from "./scheduleUnsort.js";
-import unsortDiffuse from "./unsortDiffuse.js";
+import unsortAndStart from "./unsortAndStart.js";
 
 const nowMs = () => {
   // eslint-disable-next-line no-undef
@@ -46,42 +46,6 @@ const startSorting = (cubes, meta = {}) => {
   }
 };
 
-const unsortAndStartSorting = (cubes) => {
-  cubes.active = false;
-
-  // Allow deterministic tests by injecting timer + RNG sources.
-  unsortDiffuse(cubes, {
-    targetRatio:
-      cubes && typeof cubes.diffuseTargetRatio === "number" ? cubes.diffuseTargetRatio : 0.5,
-    minMaxMs:
-      cubes && typeof cubes.diffuseMinMaxMs === "number" ? cubes.diffuseMinMaxMs : undefined,
-    swapsPerTick:
-      cubes && typeof cubes.diffuseSwapsPerTick === "number" && cubes.diffuseSwapsPerTick > 0
-        ? cubes.diffuseSwapsPerTick
-        : undefined,
-    neighborRadius:
-      cubes && typeof cubes.diffuseNeighborRadius === "number" ? cubes.diffuseNeighborRadius : undefined,
-    randomFn: cubes && typeof cubes.randomFn === "function" ? cubes.randomFn : Math.random,
-    setIntervalFn:
-      cubes && typeof cubes.setIntervalFn === "function" ? cubes.setIntervalFn : setInterval,
-    clearIntervalFn:
-      cubes && typeof cubes.clearIntervalFn === "function" ? cubes.clearIntervalFn : clearInterval,
-    nowFn: cubes && typeof cubes.nowFn === "function" ? cubes.nowFn : nowMs,
-    onComplete: ({ ratio, reason, elapsedMs, maxMs }) => {
-      if (reason === "timeout" && typeof cubes.logFn === "function") {
-        const cubeCount = Array.isArray(cubes.pixelGrid) ? cubes.pixelGrid.length : 0;
-        cubes.logFn("[unsort] diffuse timeout", {
-          cubeCount,
-          inversionRatio: ratio,
-          elapsedMs,
-          maxMs,
-        });
-      }
-      startSorting(cubes, { inversionRatio: ratio });
-    },
-  });
-};
-
 const move = (
   cubes,
   speed,
@@ -95,7 +59,7 @@ const move = (
   // Each cube object is a REFERENCE to a THREE.js Mesh object that
   // was atached to the THREE.js scene in:
   //
-  //		/js/three-bubble-sort/actions/pixelGrid.js (Line 34)
+  //		/js/three-sorting/actions/pixelGrid.js (Line 34)
   //
   let movingCube1 = true;
   let movingCube2 = true;
@@ -145,7 +109,7 @@ const move = (
             cubes && typeof cubes.unsortPauseMs === "number" ? cubes.unsortPauseMs : 10_000,
           setTimeoutFn,
           clearTimeoutFn,
-          unsortFn: unsortAndStartSorting,
+          unsortFn: (cs) => unsortAndStart(cs, { startSorting, nowFn: nowMs }),
         });
 
         return cubes;

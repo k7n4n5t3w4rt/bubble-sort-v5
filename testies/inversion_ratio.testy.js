@@ -5,7 +5,7 @@ import { test, should } from "../server/testy.js";
 //------------------------------------------------------------------
 // IMPORT: FUNCTION UNDER TEST
 //------------------------------------------------------------------
-import { inversionRatioFromValues } from "../js/three-bubble-sort/actions/inversionRatio.js";
+import { inversionRatioFromValues } from "../js/three-sorting/actions/inversionRatio.js";
 
 test("inversionRatioFromValues() is 0 for sorted ascending", () => {
   const values = Array.from({ length: 10 }, (_, i) => i);

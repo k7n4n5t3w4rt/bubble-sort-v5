@@ -17,7 +17,7 @@ import { html } from "htm/preact";
 // --------------------------------------------------
 // COMPONENTS
 // --------------------------------------------------
-import Params from "./ThreeBubbleSortParams.js";
+import Params from "./ThreeSortingParams.js";
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
@@ -30,10 +30,10 @@ import {
   setSeed,
 } from "simplestyle-js";
 
-setSeed(seedString("bubblesort"));
+setSeed(seedString("sortingvis"));
 
 const [styles] = createStyles({
-  bubbleSort: {
+  sortingContainer: {
     width: "100%",
     height: "100%",
     backgroundImage: "url(/img/bg1.png)",
@@ -53,6 +53,10 @@ export default (props) => {
   const scaleX = Math.abs(Math.floor(parseFloat(props.scalex)) || 10);
   const scaleY = Math.abs(Math.floor(parseFloat(props.scaley)) || 10);
   const scaleZ = Math.abs(Math.floor(parseFloat(props.scalez)) || 10);
+  const algorithm =
+    typeof props.algorithm === "string" && props.algorithm.length > 0
+      ? props.algorithm
+      : "bubble";
   const diffuseTargetRatio = Math.min(
     1,
     Math.max(0, parseFloat(props.diffuseTargetRatio) || 0.5),
@@ -72,6 +76,7 @@ export default (props) => {
     scaleX,
     scaleY,
     scaleZ,
+    algorithm,
     diffuseTargetRatio,
     diffuseMinMaxMs,
     diffuseSwapsPerTick,
@@ -94,6 +99,7 @@ export default (props) => {
         url.searchParams.set("scalex", String(state.scaleX));
         url.searchParams.set("scaley", String(state.scaleY));
         url.searchParams.set("scalez", String(state.scaleZ));
+        url.searchParams.set("algorithm", String(state.algorithm || "bubble"));
 
         url.searchParams.set("diffuseTargetRatio", String(state.diffuseTargetRatio));
         url.searchParams.set("diffuseMinMaxMs", String(state.diffuseMinMaxMs));
@@ -115,6 +121,7 @@ export default (props) => {
       state.scaleY,
       state.scaleZ,
       {
+        algorithm: state.algorithm,
         diffuseTargetRatio: state.diffuseTargetRatio,
         diffuseMinMaxMs: state.diffuseMinMaxMs,
         diffuseSwapsPerTick: state.diffuseSwapsPerTick,
@@ -129,6 +136,7 @@ export default (props) => {
     state.scaleX,
     state.scaleY,
     state.scaleZ,
+    state.algorithm,
     state.diffuseTargetRatio,
     state.diffuseMinMaxMs,
     state.diffuseSwapsPerTick,
@@ -137,7 +145,7 @@ export default (props) => {
   ]);
 
   return html`
-    <div id="bubble-sort" className="${styles.bubbleSort}">
+    <div id="sorting-vis" className="${styles.sortingContainer}">
       <div id="dom-overlay">
         <div id="console-ui"></div>
       </div>
@@ -148,6 +156,7 @@ export default (props) => {
         scaleX="${state.scaleX}"
         scaleY="${state.scaleY}"
         scaleZ="${state.scaleZ}"
+        algorithm="${state.algorithm}"
         diffuseTargetRatio="${state.diffuseTargetRatio}"
         diffuseMinMaxMs="${state.diffuseMinMaxMs}"
         diffuseSwapsPerTick="${state.diffuseSwapsPerTick}"

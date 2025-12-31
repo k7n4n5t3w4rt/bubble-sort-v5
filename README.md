@@ -9,15 +9,15 @@ An artwork that turns sorting algorithms into site-specific augmented-reality sc
 
 ## How the app is wired
 - Preact shell: `js/main.js` mounts `js/App.js`, which wraps routes in `AppProvider` (context/state).
-- State & params: `js/AppContext.js` + `js/appReducer.js` manage param changes; `ThreeBubbleSort` owns the algorithm view and synchronises params to the URL for reproducible runs.
-- Parameter UI: `js/three-bubble-sort/ThreeBubbleSortParams.js` renders sliders for grid dimensions, speed, physical scale (cm), and diffusion/unsort settings; dispatches `CHANGE_PARAM` into the reducer.
-- Orchestration: `js/three-bubble-sort/actions/init.js` builds a shared WebGL renderer, then hands off to either 3D or AR entrypoints via `startButtonSetup` and a generated `locationString` (querystring preserving params).
+- State & params: `js/AppContext.js` + `js/appReducer.js` manage param changes; `Sort` owns the algorithm view and synchronises params to the URL for reproducible runs.
+- Parameter UI: `js/three-sorting/ThreeSortingParams.js` renders sliders for grid dimensions, speed, physical scale (cm), diffusion/unsort settings, plus an algorithm selector (Bubble/Selection); dispatches `CHANGE_PARAM` into the reducer.
+- Orchestration: `js/three-sorting/actions/init.js` builds a shared WebGL renderer, then hands off to either 3D or AR entrypoints via `startButtonSetup` and a generated `locationString` (querystring preserving params).
 
 ### Three.js pipeline (shared pieces)
 - Renderer: `rendererSetup.js` reuses a singleton `THREE.WebGLRenderer` with WebXR enabled to avoid duplicate canvases and keep AR session state consistent.
 - Scene setup: both modes create a `Scene`, `PerspectiveCamera`, lights, stats overlay, and attach the renderer canvas into `#ar-container`.
 - Grid data: `pixelGrid.js` (3D) and `onSelectBuildPixelGrid.js` (AR) build a cube grid whose dimensions and spacing come from current params.
-- Animation loop: `animate.js` drives per-frame updates; `move.js` performs Bubble Sort steps when `cubes.active` is true; stats overlay updates every frame.
+- Animation loop: `animate.js` drives per-frame updates; sorter is chosen per state (Bubble via `bubbleSort.js`, Selection via `selectionSort.js`) when `cubes.active` is true; stats overlay updates every frame.
 - Unsort → sort cycle: `scheduleUnsort.js` triggers `unsortDiffuse.js` to introduce inversion noise (controlled by target ratio, swaps per tick, neighbour radius, min/max duration), then hands control back to the sorter.
 - Cleanup: both modes install `renderer.__bubbleSortCleanup` to stop animation loops, clear timers/intervals, remove listeners, and dispose geometries/materials to free GPU memory. WebGL context loss/restoration is logged to help diagnose hot-device failures.
 

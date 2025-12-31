@@ -5,7 +5,7 @@ import { test, should } from "../server/testy.js";
 //------------------------------------------------------------------
 // IMPORT: FUNCTION UNDER TEST
 //------------------------------------------------------------------
-import move from "../js/three-bubble-sort/actions/move.js";
+import move from "../js/three-sorting/actions/bubbleSort.js";
 
 const makeCube = (v) => ({
   bubble_value: v,
