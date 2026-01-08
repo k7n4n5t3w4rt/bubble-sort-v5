@@ -5,7 +5,9 @@ import { test, should } from "../server/testy.js";
 //------------------------------------------------------------------
 // IMPORT: FUNCTIONS UNDER TEST
 //------------------------------------------------------------------
-import unsortDiffuse, { makeUnsortDiffuse } from "../js/three-sorting/actions/unsortDiffuse.js";
+import unsortDiffuse, {
+  unsortDiffuseFactory,
+} from "../js/three-sorting/actions/unsortDiffuseFactory.js";
 import { inversionRatioFromValues } from "../js/three-sorting/actions/inversionRatio.js";
 
 const makeCube = (v) => ({
@@ -54,7 +56,11 @@ test("unsortDiffuse() increases inversion ratio and calls onComplete (determinis
   /** @type {{ info: any }[]} */
   const completes = [];
 
-  const runDiffuse = makeUnsortDiffuse(setIntervalFn, clearIntervalFn, nowFn);
+  const runDiffuse = unsortDiffuseFactory(
+    setIntervalFn,
+    clearIntervalFn,
+    nowFn,
+  );
 
   runDiffuse(cubes, {
     targetRatio: 0.5,
@@ -83,9 +89,10 @@ test("unsortDiffuse() increases inversion ratio and calls onComplete (determinis
   const afterRatio = inversionRatioFromValues(after);
 
   // Still a permutation (swaps only).
-  should([...after].sort((a, b) => a - b)).eql([...before].sort((a, b) => a - b));
+  should([...after].sort((a, b) => a - b)).eql(
+    [...before].sort((a, b) => a - b),
+  );
   // But order changed and inversion ratio increased.
   should(after).not.eql(before);
   should(afterRatio).be.above(0);
 });
-

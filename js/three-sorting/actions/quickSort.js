@@ -2,15 +2,14 @@
 // TYPES
 // --------------------------------------------------
 /** @typedef {import("./types.js").Cube} Cube */
-/** @typedef {import("./types.js").cubeState} cubeState */
+/** @typedef {import("./types.js").CubeState} CubeState */
 /** @typedef {import("./types.js").QuickPartition} QuickPartition */
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
 // import swapcubeState from "./swapcubeState.js";
-import { scheduleUnsort } from "./scheduleUnsort.js";
-import { makeUnsortDiffuse } from "./unsortDiffuse.js";
-import nowMs from "./nowMs.js";
+import scheduleUnsort from "./scheduleUnsortFactory.js";
+import unsortAndStart from "./unsortAndStart.js";
 
 /**
  * In-place quicksort for cubeState.pixelGrid, sorting by Cube.value (ascending).
@@ -19,12 +18,12 @@ import nowMs from "./nowMs.js";
  * Lomuto partition scheme (pivot = last element).
  * Average: O(n log n), Worst: O(n^2) depending on pivot/input.
  *
- * @param {cubeState} cubeState
+ * @param {CubeState} cubeState
+ * @returns {Promise<cubeState>}
+ */
 //  * @param {number} speed
 //  * @param {number} scaleZ
 //  * @param {Function} anime
- * @returns {Promise<cubeState>}
- */
 // const quickSort = async (cubeState, speed, scaleZ, anime) => {
 const quickSort = async (cubeState) => {
   // Stop the render loop from invoking quickSort again next frame.
@@ -80,83 +79,11 @@ const quickSort = async (cubeState) => {
   sort(0, pixelGrid.length - 1);
 
   // Repeat: wait N ms, unsort (diffuse), then start next quick sort run
-  const schedule =
-    cubeState && typeof cubeState.scheduleUnsort === "function"
-      ? cubeState.scheduleUnsort
-      : scheduleUnsort;
   const delayMs =
     cubeState && typeof cubeState.unsortPauseMs === "number"
       ? cubeState.unsortPauseMs
       : 10_000;
-
-  schedule(cubeState, delayMs, (cs) => {
-    if (!cs.gridCols || cs.gridCols <= 0) {
-      const n = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 1;
-      cs.gridCols = Math.max(1, n);
-    }
-
-    const runDiffuse = makeUnsortDiffuse(
-      cs && typeof cs.setIntervalFn === "function"
-        ? cs.setIntervalFn
-        : setInterval,
-      cs && typeof cs.clearIntervalFn === "function"
-        ? cs.clearIntervalFn
-        : clearInterval,
-      cs && typeof cs.nowFn === "function" ? cs.nowFn : nowMs,
-    );
-
-    runDiffuse(cs, {
-      targetRatio:
-        cs && typeof cs.diffuseTargetRatio === "number"
-          ? cs.diffuseTargetRatio
-          : 0.5,
-      minMaxMs:
-        cs && typeof cs.diffuseMinMaxMs === "number"
-          ? cs.diffuseMinMaxMs
-          : undefined,
-      swapsPerTick:
-        cs &&
-        typeof cs.diffuseSwapsPerTick === "number" &&
-        cs.diffuseSwapsPerTick > 0
-          ? cs.diffuseSwapsPerTick
-          : undefined,
-      neighborRadius:
-        cs && typeof cs.diffuseNeighborRadius === "number"
-          ? cs.diffuseNeighborRadius
-          : undefined,
-      randomFn:
-        cs && typeof cs.randomFn === "function" ? cs.randomFn : Math.random,
-      onComplete: ({ ratio, reason, elapsedMs, maxMs }) => {
-        if (reason === "timeout" && typeof cs.logFn === "function") {
-          const cubeCount = Array.isArray(cs.pixelGrid)
-            ? cs.pixelGrid.length
-            : 0;
-          cs.logFn("[unsort] diffuse timeout", {
-            cubeCount,
-            inversionRatio: ratio,
-            elapsedMs,
-            maxMs,
-          });
-        }
-        cs.moving = false;
-        cs.currentIndex = 0;
-        cs.sortStartMs = nowMs();
-        cs.sortEndMs = undefined;
-        cs.sortRunId = (cs.sortRunId || 0) + 1;
-        if (typeof cs.logFn === "function") {
-          const cubeCount = Array.isArray(cs.pixelGrid)
-            ? cs.pixelGrid.length
-            : 0;
-          cs.logFn(`[sort] #${cs.sortRunId} start (quick)`, {
-            startMs: cs.sortStartMs,
-            cubeCount,
-            inversionRatio: ratio,
-          });
-        }
-        cs.active = true;
-      },
-    });
-  });
+  scheduleUnsort(cubeState, delayMs, (cs) => unsortAndStart(cs));
 
   return cubeState;
 };

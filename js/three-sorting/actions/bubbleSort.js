@@ -1,13 +1,17 @@
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
-import { scheduleUnsort } from "./scheduleUnsort.js";
-import { makeUnsortDiffuse } from "./unsortDiffuse.js";
+
+import { scheduleUnsortFactory } from "./scheduleUnsortFactory.js";
+import { unsortDiffuseFactory } from "./unsortDiffuseFactory.js";
 import swapCubes from "./swapCubes.js";
 
 const nowMs = () => {
   // eslint-disable-next-line no-undef
-  if (typeof performance !== "undefined" && typeof performance.now === "function") {
+  if (
+    typeof performance !== "undefined" &&
+    typeof performance.now === "function"
+  ) {
     return performance.now();
   }
   return Date.now();
@@ -38,28 +42,26 @@ const startSorting = (cubes, meta = {}) => {
   cubes.sortEndMs = undefined;
 
   cubes.sortRunId = (cubes.sortRunId || 0) + 1;
-  if (typeof cubes.logFn === "function") {
-    const cubeCount = Array.isArray(cubes.pixelGrid) ? cubes.pixelGrid.length : 0;
-    cubes.logFn(
-      `[sort] #${cubes.sortRunId} start`,
-      { startMs: cubes.sortStartMs, cubeCount, ...meta },
-    );
+  {
+    const cubeCount = Array.isArray(cubes.pixelGrid)
+      ? cubes.pixelGrid.length
+      : 0;
+    console.log(`[sort] #${cubes.sortRunId} start`, {
+      startMs: cubes.sortStartMs,
+      cubeCount,
+      ...meta,
+    });
   }
 };
 
-const move = (
-  cubes,
-  speed,
-  scaleZ,
-  anime,
-) => {
+const move = (cubes, speed, scaleZ, anime) => {
   const doSwap = (from, to) => swapCubes(cubes, from, to, scaleZ, speed, anime);
   // NOTE:
   // This might not be very clear so:
   //
   // cubes is an an array of columns of cubes.
   // Each cube object is a REFERENCE to a THREE.js Mesh object that
-  // was atached to the THREE.js scene in:
+  // was attached to the THREE.js scene in:
   //
   //		/js/three-sorting/actions/pixelGrid.js (Line 34)
   //
@@ -90,47 +92,56 @@ const move = (
         cubes.currentIndex = 0;
         cubes.sortEndMs = nowMs();
         const sortStartMs =
-          typeof cubes.sortStartMs === "number" ? cubes.sortStartMs : cubes.sortEndMs;
-        const totalMs = Math.max(0, cubes.sortEndMs - sortStartMs);
-        const total = formatMinutesSeconds(totalMs);
-
-        if (typeof cubes.logFn === "function") {
-          cubes.logFn(
-            `[sort] #${cubes.sortRunId || "?"} stop`,
-            { stopMs: cubes.sortEndMs, totalMs, total, swaps: cubes.swapCount || 0 },
-          );
-        }
-
-        // Repeat: wait 10s, unsort, then start sorting again.
-        const schedule =
-          cubes && typeof cubes.scheduleUnsort === "function" ? cubes.scheduleUnsort : scheduleUnsort;
+          typeof cubes.sortStartMs === "number"
+            ? cubes.sortStartMs
+            : cubes.sortEndMs;
         const delayMs =
-          cubes && typeof cubes.unsortPauseMs === "number" ? cubes.unsortPauseMs : 10_000;
+          cubes && typeof cubes.unsortPauseMs === "number"
+            ? cubes.unsortPauseMs
+            : 10_000;
+
+        const schedule = scheduleUnsortFactory(
+          cubes.setTimeoutFn || globalThis.setTimeout,
+          cubes.clearTimeoutFn || globalThis.clearTimeout,
+        );
         schedule(cubes, delayMs, (cs) => {
           if (!cs.gridCols || cs.gridCols <= 0) {
             const n = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 1;
             cs.gridCols = Math.max(1, n);
           }
-          const runDiffuse = makeUnsortDiffuse(
-            cs && typeof cs.setIntervalFn === "function" ? cs.setIntervalFn : setInterval,
-            cs && typeof cs.clearIntervalFn === "function" ? cs.clearIntervalFn : clearInterval,
-            cs && typeof cs.nowFn === "function" ? cs.nowFn : nowMs,
+
+          const runUnsortDiffuse = unsortDiffuseFactory(
+            cs.setIntervalFn || globalThis.setInterval,
+            cs.clearIntervalFn || globalThis.clearInterval,
+            cs.nowFn || nowMs,
+            cs.randomFn || Math.random,
           );
 
-          runDiffuse(cs, {
-            targetRatio: cs && typeof cs.diffuseTargetRatio === "number" ? cs.diffuseTargetRatio : 0.5,
-            minMaxMs: cs && typeof cs.diffuseMinMaxMs === "number" ? cs.diffuseMinMaxMs : undefined,
+          runUnsortDiffuse(cs, {
+            targetRatio:
+              cs && typeof cs.diffuseTargetRatio === "number"
+                ? cs.diffuseTargetRatio
+                : 0.5,
+            minMaxMs:
+              cs && typeof cs.diffuseMinMaxMs === "number"
+                ? cs.diffuseMinMaxMs
+                : undefined,
             swapsPerTick:
-              cs && typeof cs.diffuseSwapsPerTick === "number" && cs.diffuseSwapsPerTick > 0
+              cs &&
+              typeof cs.diffuseSwapsPerTick === "number" &&
+              cs.diffuseSwapsPerTick > 0
                 ? cs.diffuseSwapsPerTick
                 : undefined,
             neighborRadius:
-              cs && typeof cs.diffuseNeighborRadius === "number" ? cs.diffuseNeighborRadius : undefined,
-            randomFn: cs && typeof cs.randomFn === "function" ? cs.randomFn : Math.random,
+              cs && typeof cs.diffuseNeighborRadius === "number"
+                ? cs.diffuseNeighborRadius
+                : undefined,
             onComplete: ({ ratio, reason, elapsedMs, maxMs }) => {
-              if (reason === "timeout" && typeof cs.logFn === "function") {
-                const cubeCount = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 0;
-                cs.logFn("[unsort] diffuse timeout", {
+              if (reason === "timeout") {
+                const cubeCount = Array.isArray(cs.pixelGrid)
+                  ? cs.pixelGrid.length
+                  : 0;
+                console.log("[unsort] diffuse timeout", {
                   cubeCount,
                   inversionRatio: ratio,
                   elapsedMs,
@@ -146,12 +157,15 @@ const move = (
               cs.sortStartMs = nowMs();
               cs.sortEndMs = undefined;
               cs.sortRunId = (cs.sortRunId || 0) + 1;
-              if (typeof cs.logFn === "function") {
-                const cubeCount = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 0;
-                cs.logFn(
-                  `[sort] #${cs.sortRunId} start`,
-                  { startMs: cs.sortStartMs, cubeCount, inversionRatio: ratio },
-                );
+              {
+                const cubeCount = Array.isArray(cs.pixelGrid)
+                  ? cs.pixelGrid.length
+                  : 0;
+                console.log(`[sort] #${cs.sortRunId} start`, {
+                  startMs: cs.sortStartMs,
+                  cubeCount,
+                  inversionRatio: ratio,
+                });
               }
               cs.active = true;
             },
@@ -163,7 +177,10 @@ const move = (
 
       // Pass had swaps -> tighten the bound for the next pass and start over.
       // Everything after lastSwapIndex is already in correct relative order.
-      cubes.passEndIndex = Math.max(0, Math.min(cubes.passEndIndex, cubes.lastSwapIndex || 0));
+      cubes.passEndIndex = Math.max(
+        0,
+        Math.min(cubes.passEndIndex, cubes.lastSwapIndex || 0),
+      );
       cubes.lastSwapIndex = 0;
       cubes.currentIndex = 0;
       cubes.passHadSwap = false;

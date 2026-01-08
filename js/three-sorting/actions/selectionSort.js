@@ -1,74 +1,94 @@
-// @flow
+// --------------------------------------------------
+// TYPES
+// --------------------------------------------------
+/** @typedef {import("./types.js").Cube} Cube */
+/** @typedef {import("./types.js").CubeState} CubeState */
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
-import { scheduleUnsort } from "./scheduleUnsort.js";
+import scheduleUnsort from "./scheduleUnsortFactory.js";
 import unsortAndStart from "./unsortAndStart.js";
-import makeAnimateSwap from "./animateSwap.js";
+import animateSwap from "./animateSwap.js";
 
 const nowMs = () => {
   // eslint-disable-next-line no-undef
-  if (typeof performance !== "undefined" && typeof performance.now === "function") {
+  if (
+    typeof performance !== "undefined" &&
+    typeof performance.now === "function"
+  ) {
     return performance.now();
   }
   return Date.now();
 };
 
-const startSelection = (cubes, meta = {}) => {
-  cubes.active = true;
-  cubes.moving = false;
-  cubes.currentIndex = 0;
-  cubes.sortStartMs = nowMs();
-  cubes.sortEndMs = undefined;
-  cubes.sortRunId = (cubes.sortRunId || 0) + 1;
-  if (typeof cubes.logFn === "function") {
-    const cubeCount = Array.isArray(cubes.pixelGrid) ? cubes.pixelGrid.length : 0;
-    cubes.logFn(
-      `[sort] #${cubes.sortRunId} start (selection)`,
-      { startMs: cubes.sortStartMs, cubeCount, ...meta },
-    );
+const startSelection = (cubeState, meta = {}) => {
+  cubeState.active = true;
+  cubeState.moving = false;
+  cubeState.currentIndex = 0;
+  cubeState.sortStartMs = nowMs();
+  cubeState.sortEndMs = undefined;
+  cubeState.sortRunId = (cubeState.sortRunId || 0) + 1;
+
+  {
+    const cubeCount = Array.isArray(cubeState.pixelGrid)
+      ? cubeState.pixelGrid.length
+      : 0;
+
+    console.log(`[sort] #${cubeState.sortRunId} start (selection)`, {
+      startMs: cubeState.sortStartMs,
+      cubeCount,
+      ...meta,
+    });
   }
 };
 
-const move = (
-  cubes /*: CubeState */,
-  speed /*: number */,
-  scaleZ /*: number */,
-  anime /*: function */,
-) /*: CubeState */ => {
-  const swapCubes = makeAnimateSwap(scaleZ, speed, anime);
+/**
+ * @param {CubeState} cubeState
+ * @param {number} speed
+ * @param {number} scaleZ
+ * @param {(opts: any) => any} anime // AnimeRunner-compatible function
+ * @returns {CubeState}
+ */
+const move = (cubeState, speed, scaleZ, anime) => {
+  // const swapCubes = animateSwapFactory();
   // NOTE:
   // This might not be very clear so:
   //
   // cubes is an an array of columns of cubes.
   // Each cube object is a REFERENCE to a THREE.js Mesh object that
-  // was atached to the THREE.js scene in:
+  // was attached to the THREE.js scene in:
   //
   //		/js/three-sorting/actions/pixelGrid.js (Line 34)
   //
   let movingCube1 /*: boolean */ = true;
   let movingCube2 /*: boolean */ = true;
-  if (cubes.moving === false) {
+  if (cubeState.moving === false) {
     // End condition: once we’ve placed the last item, stop and schedule an unsort for the next run.
-    if (cubes.currentIndex >= cubes.pixelGrid.length - 1) {
-      cubes.active = false;
-      cubes.currentIndex = 0;
-      cubes.sortEndMs = nowMs();
+    // Ensure currentIndex is always a valid number before using it.
+    const safeCurrentIndex =
+      typeof cubeState.currentIndex === "number" ? cubeState.currentIndex : 0;
+    if (safeCurrentIndex >= cubeState.pixelGrid.length - 1) {
+      cubeState.active = false;
+      cubeState.currentIndex = 0;
+      cubeState.sortEndMs = nowMs();
 
-      const schedule =
-        cubes && typeof cubes.scheduleUnsort === "function" ? cubes.scheduleUnsort : scheduleUnsort;
+      const schedule = scheduleUnsort;
       const delayMs =
-        cubes && typeof cubes.unsortPauseMs === "number" ? cubes.unsortPauseMs : 10_000;
-      schedule(cubes, delayMs, (cs) =>
-        unsortAndStart(cs, { startSorting: startSelection, nowFn: nowMs }),
+        cubeState && typeof cubeState.unsortPauseMs === "number"
+          ? cubeState.unsortPauseMs
+          : 10_000;
+      schedule(cubeState, delayMs, (cs) =>
+        // unsortAndStart(cs, { startSorting: startSelection, nowFn: nowMs }),
+        unsortAndStart(cs),
       );
 
-      return cubes;
+      return cubeState;
     }
 
-    const currentIndex /*: number */ = cubes.currentIndex;
+    const currentIndex /*: number */ =
+      typeof cubeState.currentIndex === "number" ? cubeState.currentIndex : 0;
     const nextIndex = currentIndex + 1;
-    const indexOfItemWLowestSelectionValue = cubes.pixelGrid.reduce(
+    const indexOfItemWLowestSelectionValue = cubeState.pixelGrid.reduce(
       (acc, cube, index) => {
         if (index > currentIndex) {
           if (cube.selection_value < acc[1]) {
@@ -80,10 +100,10 @@ const move = (
           return acc;
         }
       },
-      [currentIndex, cubes.pixelGrid[currentIndex].selection_value],
+      [currentIndex, cubeState.pixelGrid[currentIndex].selection_value],
     )[0];
-    const cube1 = cubes.pixelGrid[currentIndex];
-    const cube2 = cubes.pixelGrid[indexOfItemWLowestSelectionValue];
+    const cube1 = cubeState.pixelGrid[currentIndex];
+    const cube2 = cubeState.pixelGrid[indexOfItemWLowestSelectionValue];
 
     // console.log(`Trying cubes[${currentIndex}] and cubes[${nextIndex}]...`);
 
@@ -97,31 +117,34 @@ const move = (
       //   );
 
       //   console.log(`cubes.moving === `, cubes.moving);
-      if (cubes.moving === false) {
+      if (cubeState.moving === false) {
         // console.log(
         //   `Preparing to swap cubes[${currentIndex}]and cubes[${nextIndex}]...`,
         // );
 
         // This will cause all calls to move() to have no effect... until
         // the move has finished and cubes.moving is set back to false
-        cubes.moving = true;
+        cubeState.moving = true;
 
-        swapCubes(
-          cubes,
+        animateSwap(
+          scaleZ,
+          speed,
+          anime,
+          cubeState,
           currentIndex,
           indexOfItemWLowestSelectionValue,
-          () => {
-            movingCube1 = false;
-            movingCube2 = false;
-            cubes.currentIndex = nextIndex;
-          },
+          // () => {
+          //   movingCube1 = false;
+          //   movingCube2 = false;
+          //   cubes.currentIndex = nextIndex;
+          // },
         );
       }
     } else {
-      cubes.currentIndex = nextIndex;
+      cubeState.currentIndex = nextIndex;
     }
   }
-  return cubes;
+  return cubeState;
 };
 
 export default move;

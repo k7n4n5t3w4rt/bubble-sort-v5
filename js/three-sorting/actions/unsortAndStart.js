@@ -1,63 +1,50 @@
-import unsortDiffuse from "./unsortDiffuse.js";
-
-const defaultNowMs = () => {
-  // eslint-disable-next-line no-undef
-  if (typeof performance !== "undefined" && typeof performance.now === "function") {
-    return performance.now();
-  }
-  return Date.now();
-};
+// --------------------------------------------------
+// TYPES
+// --------------------------------------------------
+/** @typedef {import("./types.js").CubeState} cubeState */
+// ------------------------------------------------------------------
+// HELPERS
+// ------------------------------------------------------------------
+import unsortDiffuse from "./unsortDiffuseFactory.js";
+import startQuick from "./startQuick.js";
 
 /**
- * Runs the diffusion/unsort phase, then invokes the provided startSorting callback.
- * Accepts optional injected timing/random sources for deterministic tests.
- * @param {any} cubes
- * @param {{ startSorting?: (cubes: any, meta?: any) => void, nowFn?: () => number }} [options]
+ * Runs the diffusion/unsort phase, then starts the next quick sort run.
+ * @param {cubeState} cubeState
  */
-export default function unsortAndStart(
-  cubes,
-  {
-    startSorting,
-    nowFn = defaultNowMs,
-  } = {},
-) {
-  if (typeof startSorting !== "function") return;
-
-  cubes.active = false;
-  if (!cubes.gridCols || cubes.gridCols <= 0) {
-    const n = Array.isArray(cubes.pixelGrid) ? cubes.pixelGrid.length : 1;
-    cubes.gridCols = Math.max(1, n);
+const unsortAndStart = (cubeState) => {
+  cubeState.active = false;
+  if (!cubeState.gridCols || cubeState.gridCols <= 0) {
+    const n = Array.isArray(cubeState.pixelGrid)
+      ? cubeState.pixelGrid.length
+      : 1;
+    cubeState.gridCols = Math.max(1, n);
   }
 
-  unsortDiffuse(cubes, {
-    targetRatio:
-      cubes && typeof cubes.diffuseTargetRatio === "number" ? cubes.diffuseTargetRatio : 0.5,
-    minMaxMs:
-      cubes && typeof cubes.diffuseMinMaxMs === "number" ? cubes.diffuseMinMaxMs : undefined,
-    swapsPerTick:
-      cubes && typeof cubes.diffuseSwapsPerTick === "number" && cubes.diffuseSwapsPerTick > 0
-        ? cubes.diffuseSwapsPerTick
-        : undefined,
-    neighborRadius:
-      cubes && typeof cubes.diffuseNeighborRadius === "number" ? cubes.diffuseNeighborRadius : undefined,
-    randomFn: cubes && typeof cubes.randomFn === "function" ? cubes.randomFn : Math.random,
-    setIntervalFn:
-      cubes && typeof cubes.setIntervalFn === "function" ? cubes.setIntervalFn : setInterval,
-    clearIntervalFn:
-      cubes && typeof cubes.clearIntervalFn === "function" ? cubes.clearIntervalFn : clearInterval,
-    nowFn: cubes && typeof cubes.nowFn === "function" ? cubes.nowFn : nowFn,
+  unsortDiffuse(cubeState, {
+    targetRatio: cubeState.diffuseTargetRatio,
+    minMaxMs: cubeState.diffuseMinMaxMs,
+    swapsPerTick: cubeState.diffuseSwapsPerTick,
+    neighborRadius: cubeState.diffuseNeighborRadius,
     onComplete: ({ ratio, reason, elapsedMs, maxMs }) => {
-      if (reason === "timeout" && typeof cubes.logFn === "function") {
-        const cubeCount = Array.isArray(cubes.pixelGrid) ? cubes.pixelGrid.length : 0;
-        cubes.logFn("[unsort] diffuse timeout", {
-          cubeCount,
-          inversionRatio: ratio,
-          elapsedMs,
-          maxMs,
-        });
+      if (reason === "timeout") {
+        const cubeCount = Array.isArray(cubeState.pixelGrid)
+          ? cubeState.pixelGrid.length
+          : 0;
+
+        // const logFn = /** @type {any} */ (cubeState).logFn;
+        // if (typeof logFn === "function") {
+        //   logFn("[unsort] diffuse timeout", {
+        //     cubeCount,
+        //     inversionRatio: ratio,
+        //     elapsedMs,
+        //     maxMs,
+        //   });
+        // }
       }
-      startSorting(cubes, { inversionRatio: ratio });
+      startQuick(cubeState, { inversionRatio: ratio });
     },
   });
-}
+};
 
+export default unsortAndStart;

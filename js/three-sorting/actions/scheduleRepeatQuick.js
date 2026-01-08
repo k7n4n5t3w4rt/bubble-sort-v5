@@ -1,18 +1,18 @@
+// ------------------------------------------------
+// TYPES
+// ------------------------------------------------
 /** @typedef {import("./types.js").CubeState} CubeState */
-
-import { scheduleUnsort } from "./scheduleUnsort.js";
+// ------------------------------------------------
+// HELPERS
+// ------------------------------------------------
+import scheduleUnsort from "./scheduleUnsortFactory.js";
 import unsortAndStart from "./unsortAndStart.js";
-import nowMs from "./nowMs.js";
-import startQuick from "./startQuick.js";
 
-/** @param {CubeState} cubes */
-const scheduleRepeatQuick = (cubes) => {
-  const schedule =
-    cubes && typeof cubes.scheduleUnsort === "function" ? cubes.scheduleUnsort : scheduleUnsort;
-
-  const delayMs = cubes && typeof cubes.unsortPauseMs === "number" ? cubes.unsortPauseMs : 10_000;
-  schedule(cubes, delayMs, (cs) => unsortAndStart(cs, { startSorting: startQuick, nowFn: nowMs }));
+/** @param {CubeState} cubeState */
+const scheduleRepeatQuick = (cubeState) => {
+  scheduleUnsort(cubeState, cubeState.unsortPauseMs, (cs) =>
+    unsortAndStart(cs),
+  );
 };
 
 export default scheduleRepeatQuick;
-

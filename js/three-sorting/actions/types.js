@@ -24,6 +24,9 @@
  */
 
 /**
+ * Runtime state for the sorting visualizations.
+ * Many fields are optional and set lazily by different algorithms or phases.
+ *
  * @typedef {Object} CubeState
  * @property {Cube[]} pixelGrid
  * @property {boolean} active
@@ -38,23 +41,28 @@
  * @property {number} [diffuseMinMaxMs]
  * @property {number} [diffuseSwapsPerTick]
  * @property {number} [diffuseNeighborRadius]
- * @property {ReturnType<typeof setTimeout>} [unsortTimeoutId]
- * @property {Function} [logFn]
- * @property {Function} [setTimeoutFn]
- * @property {Function} [clearTimeoutFn]
- * @property {Function} [setIntervalFn]
- * @property {Function} [clearIntervalFn]
- * @property {Function} [randomFn]
- * @property {Function} [nowFn]
- * @property {(cubes: any, delayMs?: number, unsortFn?: Function) => any} [scheduleUnsort]
- * @property {any[]} [quickStack]
- * @property {QuickPartition | null} [quickPartition]
- * @property {boolean} [quickInit]
+ * @property {(ReturnType<typeof setTimeout>|null)} [unsortTimeoutId]
  * @property {number} [gridCols]
  * @property {number} [gridRows]
- * @property {{ baseX: number, baseY: number, baseZ: number, stepY: number, stepZ: number, cols: number }} [_gridSnapMetaStatic]
- * @property {{ baseX: number, baseY: number, baseZ: number, stepY: number, stepZ: number, cols: number } | null} [_gridSnapMeta]
+ *
+ * // Bubble-sort specific optional state
+ * @property {boolean} [passHadSwap]
+ * @property {number} [passEndIndex]
+ * @property {number} [lastSwapIndex]
+ * @property {number} [swapCount]
+ *
+ * // Unsort/diffusion internals
+ * @property {number} [diffuseRunToken]
+ * @property {Uint16Array} [diffuseValuesBuffer]
+ * @property {{ bit: Uint32Array }} [diffuseInversionScratch]
  */
 
-export { };
+/**
+ * @callback AnimeRunner
+ * A function that starts an animation and returns an animation instance.
+ * Compatible with anime.js and test stubs.
+ * @param {any} opts
+ * @returns {{ finished?: PromiseLike<unknown> } | any}
+ */
 
+export {};

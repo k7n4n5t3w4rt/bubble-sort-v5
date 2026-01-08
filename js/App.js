@@ -1,14 +1,19 @@
-import { h } from "preact";
+// --------------------------------------------------
+// PREACT
+// --------------------------------------------------
 import Router from "preact-router";
 import { html } from "htm/preact";
 import { AppProvider } from "./AppContext.js";
+// --------------------------------------------------
+// HELPERS
+// --------------------------------------------------
 import Sort from "./three-sorting/Sort.js";
-const finishCounter = {
-  ALGORITHMS: [],
-  COUNT: 0,
-};
 
-
+/**
+ *
+ * @param {string} props
+ * @returns
+ */
 const App = (props) => {
   return html`
     <${AppProvider} >

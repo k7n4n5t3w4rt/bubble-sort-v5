@@ -8,7 +8,7 @@ import { test, should } from "../server/testy.js";
 import * as THREE from "three";
 import pixelGrid from "../js/three-sorting/actions/pixelGrid.js";
 import unsort from "../js/three-sorting/actions/unsort.js";
-import { makeScheduleUnsort } from "../js/three-sorting/actions/scheduleUnsort.js";
+import { scheduleUnsortFactory } from "../js/three-sorting/actions/scheduleUnsortFactory.js";
 
 test("unsort() makes a sorted pixelGrid no longer sorted (deterministic shuffle)", () => {
   const cols = 6;
@@ -36,7 +36,9 @@ test("unsort() makes a sorted pixelGrid no longer sorted (deterministic shuffle)
   const after = pixelGridCubes.map((c) => c.bubble_value);
 
   // Still a permutation of the original values
-  should([...after].sort((a, b) => a - b)).eql([...before].sort((a, b) => a - b));
+  should([...after].sort((a, b) => a - b)).eql(
+    [...before].sort((a, b) => a - b),
+  );
 
   // But not identical order
   should(after).not.eql(before);
@@ -67,7 +69,7 @@ test("scheduleUnsort() schedules unsort after 10s and calls unsort via injected 
     calls.push(cubes);
   };
 
-  const schedule = makeScheduleUnsort(fakeSetTimeout);
+  const schedule = scheduleUnsortFactory(fakeSetTimeout);
   const cubes = { pixelGrid: [] };
   const id = schedule(cubes, 10_000, fakeUnsort);
 
@@ -79,9 +81,3 @@ test("scheduleUnsort() schedules unsort after 10s and calls unsort via injected 
   should(calls.length).be.exactly(1);
   should(calls[0]).be.exactly(cubes);
 });
-
-
-
-
-
-

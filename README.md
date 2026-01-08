@@ -18,7 +18,7 @@ An artwork that turns sorting algorithms into site-specific augmented-reality sc
 - Scene setup: both modes create a `Scene`, `PerspectiveCamera`, lights, stats overlay, and attach the renderer canvas into `#ar-container`.
 - Grid data: `pixelGrid.js` (3D) and `onSelectBuildPixelGrid.js` (AR) build a cube grid whose dimensions and spacing come from current params.
 - Animation loop: `animate.js` drives per-frame updates; sorter is chosen per state (Bubble via `bubbleSort.js`, Selection via `selectionSort.js`, Quick via `quickSort.js`) when `cubes.active` is true; stats overlay updates every frame.
-- Unsort → sort cycle: `scheduleUnsort.js` triggers `unsortDiffuse.js` to introduce inversion noise (controlled by target ratio, swaps per tick, neighbour radius, min/max duration), then hands control back to the sorter.
+- Unsort → sort cycle: `scheduleUnsortFactory.js` (default export `scheduleUnsort`) triggers `unsortDiffuse.js` to introduce inversion noise (controlled by target ratio, swaps per tick, neighbour radius, min/max duration), then hands control back to the sorter.
 - Cleanup: both modes install `renderer.__bubbleSortCleanup` to stop animation loops, clear timers/intervals, remove listeners, and dispose geometries/materials to free GPU memory. WebGL context loss/restoration is logged to help diagnose hot-device failures.
 
 ### Normal 3D mode (`initNormal3D.js`)

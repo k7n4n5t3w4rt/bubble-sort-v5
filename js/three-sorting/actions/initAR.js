@@ -3,6 +3,10 @@
 // --------------------------------------------------
 import * as THREE from "three";
 // --------------------------------------------------
+// TYPES
+// --------------------------------------------------
+/** @typedef {import("./types.js").CubeState} CubeState */
+// --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
 import createStats from "../../create_stats.js";
@@ -11,8 +15,9 @@ import onSelectBuildPixelGrid from "./onSelectBuildPixelGrid.js";
 import animate from "./animate.js";
 import addReticleToScene from "../calculations/addReticleToScene.js";
 import getOrCreateRenderContainer from "./getOrCreateRenderContainer.js";
+import { clearUnsortDiffuse } from "./unsortDiffuseFactory.js";
 
-export default (renderer, params) => {
+export const initAR = (renderer, params) => {
   const {
     cols,
     rows,
@@ -71,8 +76,7 @@ export default (renderer, params) => {
   container.appendChild(stats.domElement ?? stats.dom);
 
   const reticleStuff = addReticleToScene({ stats, scene, camera, renderer });
-
-  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number, passHadSwap?: boolean, sortStartMs?: number, sortEndMs?: number, sortRunId?: number, unsortTimeoutId?: any, setTimeoutFn?: any, clearTimeoutFn?: any, unsortPauseMs?: number, diffusing?: boolean, diffuseIntervalId?: any, diffuseRunToken?: number, setIntervalFn?: any, clearIntervalFn?: any, nowFn?: any, diffuseTargetRatio?: number, diffuseMinMaxMs?: number, diffuseSwapsPerTick?: number, diffuseNeighborRadius?: number, gridCols?: number, gridRows?: number, randomFn?: any, logFn?: any, hasGrid?: boolean }} */
+  /** @type {CubeState & { pixelGridGroup: any, hasGrid?: boolean }} */
   const cubes = {
     pixelGridGroup: {},
     pixelGrid: /** @type {any[]} */ ([]),
@@ -80,18 +84,33 @@ export default (renderer, params) => {
     active: false,
     currentIndex: 0,
   };
-  cubes.logFn = console.log;
-  if (diffuseTargetRatio != null && Number.isFinite(Number(diffuseTargetRatio))) {
-    cubes.diffuseTargetRatio = Math.max(0, Math.min(1, Number(diffuseTargetRatio)));
+
+  if (
+    diffuseTargetRatio != null &&
+    Number.isFinite(Number(diffuseTargetRatio))
+  ) {
+    cubes.diffuseTargetRatio = Math.max(
+      0,
+      Math.min(1, Number(diffuseTargetRatio)),
+    );
   }
   if (diffuseMinMaxMs != null && Number.isFinite(Number(diffuseMinMaxMs))) {
     cubes.diffuseMinMaxMs = Math.max(0, Number(diffuseMinMaxMs));
   }
-  if (diffuseSwapsPerTick != null && Number.isFinite(Number(diffuseSwapsPerTick))) {
+  if (
+    diffuseSwapsPerTick != null &&
+    Number.isFinite(Number(diffuseSwapsPerTick))
+  ) {
     cubes.diffuseSwapsPerTick = Math.max(0, Number(diffuseSwapsPerTick));
   }
-  if (diffuseNeighborRadius != null && Number.isFinite(Number(diffuseNeighborRadius))) {
-    cubes.diffuseNeighborRadius = Math.max(1, Math.floor(Number(diffuseNeighborRadius)));
+  if (
+    diffuseNeighborRadius != null &&
+    Number.isFinite(Number(diffuseNeighborRadius))
+  ) {
+    cubes.diffuseNeighborRadius = Math.max(
+      1,
+      Math.floor(Number(diffuseNeighborRadius)),
+    );
   }
   if (unsortPauseMs != null && Number.isFinite(Number(unsortPauseMs))) {
     cubes.unsortPauseMs = Math.max(0, Number(unsortPauseMs));
@@ -113,7 +132,9 @@ export default (renderer, params) => {
       active: Boolean(cubes.active),
       diffusing: Boolean(cubes.diffusing),
       pixelRatio:
-        typeof renderer.getPixelRatio === "function" ? renderer.getPixelRatio() : undefined,
+        typeof renderer.getPixelRatio === "function"
+          ? renderer.getPixelRatio()
+          : undefined,
     });
 
     const onLost = (e) => {
@@ -122,18 +143,19 @@ export default (renderer, params) => {
       } catch (_) {
         // ignore
       }
-      if (typeof cubes.logFn === "function") {
-        cubes.logFn("[webgl] context lost", { mode: "ar", ...getStats() });
-      }
+
+      console.log("[webgl] context lost", { mode: "ar", ...getStats() });
     };
     const onRestored = () => {
-      if (typeof cubes.logFn === "function") {
-        cubes.logFn("[webgl] context restored", { mode: "ar", ...getStats() });
-      }
+      console.log("[webgl] context restored", { mode: "ar", ...getStats() });
     };
 
     renderer.domElement.addEventListener("webglcontextlost", onLost, false);
-    renderer.domElement.addEventListener("webglcontextrestored", onRestored, false);
+    renderer.domElement.addEventListener(
+      "webglcontextrestored",
+      onRestored,
+      false,
+    );
 
     // Store for later cleanup if needed.
     // @ts-ignore - ad-hoc internal property
@@ -187,7 +209,8 @@ export default (renderer, params) => {
 
   const disposeObject3D = (obj) => {
     if (!obj) return;
-    if (obj.geometry && typeof obj.geometry.dispose === "function") obj.geometry.dispose();
+    if (obj.geometry && typeof obj.geometry.dispose === "function")
+      obj.geometry.dispose();
     if (obj.material) disposeMaterial(obj.material);
   };
 
@@ -203,17 +226,15 @@ export default (renderer, params) => {
     try {
       if (cubes && cubes.unsortTimeoutId != null) {
         // eslint-disable-next-line no-undef
-        if (typeof clearTimeout === "function") clearTimeout(cubes.unsortTimeoutId);
+        if (typeof clearTimeout === "function")
+          clearTimeout(cubes.unsortTimeoutId);
         cubes.unsortTimeoutId = null;
       }
-    } catch (_) {
-      // ignore
-    }
-    try {
-      if (cubes && cubes.diffuseIntervalId != null) {
-        // eslint-disable-next-line no-undef
-        if (typeof clearInterval === "function") clearInterval(cubes.diffuseIntervalId);
-        cubes.diffuseIntervalId = null;
+      // eslint-disable-next-line no-undef
+      if (typeof clearInterval === "function") {
+        clearUnsortDiffuse(cubes, clearInterval);
+      } else {
+        clearUnsortDiffuse(cubes);
       }
     } catch (_) {
       // ignore
@@ -243,3 +264,4 @@ export default (renderer, params) => {
   };
 };
 
+export default initAR;

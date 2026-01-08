@@ -4,23 +4,20 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 // --------------------------------------------------
+// TYPES
+// --------------------------------------------------
+/** @typedef {import("./types.js").CubeState} CubeState */
+// --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
 import createStats from "../../create_stats.js";
 import onWindowResize from "../calculations/onWindowResize.js";
 import animate from "./animate.js";
 import pixelGrid from "./pixelGrid.js";
-import scheduleUnsort from "./scheduleUnsort.js";
-import unsortDiffuse from "./unsortDiffuse.js";
+import scheduleUnsort from "./scheduleUnsortFactory.js";
+import unsortDiffuse, { clearUnsortDiffuse } from "./unsortDiffuseFactory.js";
 import getOrCreateRenderContainer from "./getOrCreateRenderContainer.js";
-
-const nowMs = () => {
-  // eslint-disable-next-line no-undef
-  if (typeof performance !== "undefined" && typeof performance.now === "function") {
-    return performance.now();
-  }
-  return Date.now();
-};
+import nowMs from "./nowMs.js";
 
 const makeNonARReticleStuff = () => ({
   active: false,
@@ -91,7 +88,7 @@ export default (renderer, params) => {
 
   const reticleStuff = makeNonARReticleStuff();
 
-  /** @type {{ pixelGridGroup: any, pixelGrid: any[], moving: boolean, active: boolean, currentIndex: number, passHadSwap?: boolean, sortStartMs?: number, sortEndMs?: number, sortRunId?: number, unsortTimeoutId?: any, setTimeoutFn?: any, clearTimeoutFn?: any, unsortPauseMs?: number, diffusing?: boolean, diffuseIntervalId?: any, diffuseRunToken?: number, setIntervalFn?: any, clearIntervalFn?: any, nowFn?: any, diffuseTargetRatio?: number, diffuseMinMaxMs?: number, diffuseSwapsPerTick?: number, diffuseNeighborRadius?: number, gridCols?: number, gridRows?: number, randomFn?: any, logFn?: any }} */
+  /** @type {CubeState & { pixelGridGroup: any }} */
   const cubes = {
     pixelGridGroup: {},
     pixelGrid: /** @type {any[]} */ ([]),
@@ -99,7 +96,8 @@ export default (renderer, params) => {
     active: false,
     currentIndex: 0,
   };
-  cubes.logFn = console.log;
+
+  const logFn = console.log;
 
   // Log WebGL context loss/restoration (helps diagnose “graphics disappeared”).
   // Attach once per renderer so repeated inits don't add duplicate listeners.
@@ -117,7 +115,9 @@ export default (renderer, params) => {
       active: Boolean(cubes.active),
       diffusing: Boolean(cubes.diffusing),
       pixelRatio:
-        typeof renderer.getPixelRatio === "function" ? renderer.getPixelRatio() : undefined,
+        typeof renderer.getPixelRatio === "function"
+          ? renderer.getPixelRatio()
+          : undefined,
     });
 
     const onLost = (e) => {
@@ -126,18 +126,26 @@ export default (renderer, params) => {
       } catch (_) {
         // ignore
       }
-      if (typeof cubes.logFn === "function") {
-        cubes.logFn("[webgl] context lost", { mode: "desktop", ...getStats() });
+
+      if (typeof logFn === "function") {
+        logFn("[webgl] context lost", { mode: "desktop", ...getStats() });
       }
     };
     const onRestored = () => {
-      if (typeof cubes.logFn === "function") {
-        cubes.logFn("[webgl] context restored", { mode: "desktop", ...getStats() });
+      if (typeof logFn === "function") {
+        logFn("[webgl] context restored", {
+          mode: "desktop",
+          ...getStats(),
+        });
       }
     };
 
     renderer.domElement.addEventListener("webglcontextlost", onLost, false);
-    renderer.domElement.addEventListener("webglcontextrestored", onRestored, false);
+    renderer.domElement.addEventListener(
+      "webglcontextrestored",
+      onRestored,
+      false,
+    );
 
     // @ts-ignore - ad-hoc internal property
     renderer.__bubbleSortWebglListenerFns = { onLost, onRestored };
@@ -157,17 +165,32 @@ export default (renderer, params) => {
   cubes.pixelGridGroup = pixelGridGroup;
   cubes.gridCols = cols;
   cubes.gridRows = rows;
-  if (diffuseTargetRatio != null && Number.isFinite(Number(diffuseTargetRatio))) {
-    cubes.diffuseTargetRatio = Math.max(0, Math.min(1, Number(diffuseTargetRatio)));
+  if (
+    diffuseTargetRatio != null &&
+    Number.isFinite(Number(diffuseTargetRatio))
+  ) {
+    cubes.diffuseTargetRatio = Math.max(
+      0,
+      Math.min(1, Number(diffuseTargetRatio)),
+    );
   }
   if (diffuseMinMaxMs != null && Number.isFinite(Number(diffuseMinMaxMs))) {
     cubes.diffuseMinMaxMs = Math.max(0, Number(diffuseMinMaxMs));
   }
-  if (diffuseSwapsPerTick != null && Number.isFinite(Number(diffuseSwapsPerTick))) {
+  if (
+    diffuseSwapsPerTick != null &&
+    Number.isFinite(Number(diffuseSwapsPerTick))
+  ) {
     cubes.diffuseSwapsPerTick = Math.max(0, Number(diffuseSwapsPerTick));
   }
-  if (diffuseNeighborRadius != null && Number.isFinite(Number(diffuseNeighborRadius))) {
-    cubes.diffuseNeighborRadius = Math.max(1, Math.floor(Number(diffuseNeighborRadius)));
+  if (
+    diffuseNeighborRadius != null &&
+    Number.isFinite(Number(diffuseNeighborRadius))
+  ) {
+    cubes.diffuseNeighborRadius = Math.max(
+      1,
+      Math.floor(Number(diffuseNeighborRadius)),
+    );
   }
   if (unsortPauseMs != null && Number.isFinite(Number(unsortPauseMs))) {
     cubes.unsortPauseMs = Math.max(0, Number(unsortPauseMs));
@@ -179,28 +202,39 @@ export default (renderer, params) => {
   cubes.passHadSwap = false;
 
   // Grid starts sorted; after it’s visible, unsort it, then begin sorting.
-  const delayMs = cubes && typeof cubes.unsortPauseMs === "number" ? cubes.unsortPauseMs : 10_000;
+  const delayMs =
+    cubes && typeof cubes.unsortPauseMs === "number"
+      ? cubes.unsortPauseMs
+      : 10_000;
   scheduleUnsort(cubes, delayMs, (cs) => {
     cs.active = false;
 
     unsortDiffuse(cs, {
-      targetRatio: cs && typeof cs.diffuseTargetRatio === "number" ? cs.diffuseTargetRatio : 0.5,
-      minMaxMs: cs && typeof cs.diffuseMinMaxMs === "number" ? cs.diffuseMinMaxMs : undefined,
+      targetRatio:
+        cs && typeof cs.diffuseTargetRatio === "number"
+          ? cs.diffuseTargetRatio
+          : 0.5,
+      minMaxMs:
+        cs && typeof cs.diffuseMinMaxMs === "number"
+          ? cs.diffuseMinMaxMs
+          : undefined,
       swapsPerTick:
-        cs && typeof cs.diffuseSwapsPerTick === "number" && cs.diffuseSwapsPerTick > 0
+        cs &&
+        typeof cs.diffuseSwapsPerTick === "number" &&
+        cs.diffuseSwapsPerTick > 0
           ? cs.diffuseSwapsPerTick
           : undefined,
       neighborRadius:
-        cs && typeof cs.diffuseNeighborRadius === "number" ? cs.diffuseNeighborRadius : undefined,
-      randomFn: cs && typeof cs.randomFn === "function" ? cs.randomFn : Math.random,
-      setIntervalFn: cs && typeof cs.setIntervalFn === "function" ? cs.setIntervalFn : setInterval,
-      clearIntervalFn:
-        cs && typeof cs.clearIntervalFn === "function" ? cs.clearIntervalFn : clearInterval,
-      nowFn: cs && typeof cs.nowFn === "function" ? cs.nowFn : nowMs,
+        cs && typeof cs.diffuseNeighborRadius === "number"
+          ? cs.diffuseNeighborRadius
+          : undefined,
       onComplete: ({ ratio, reason, elapsedMs, maxMs }) => {
-        if (reason === "timeout" && typeof cs.logFn === "function") {
-          const cubeCount = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 0;
-          cs.logFn("[unsort] diffuse timeout", {
+        if (reason === "timeout" && typeof logFn === "function") {
+          const cubeCount = Array.isArray(cs.pixelGrid)
+            ? cs.pixelGrid.length
+            : 0;
+
+          logFn("[unsort] diffuse timeout", {
             cubeCount,
             inversionRatio: ratio,
             elapsedMs,
@@ -213,12 +247,17 @@ export default (renderer, params) => {
         cs.sortStartMs = nowMs();
         cs.sortEndMs = undefined;
         cs.sortRunId = (cs.sortRunId || 0) + 1;
-        if (typeof cs.logFn === "function") {
-          const cubeCount = Array.isArray(cs.pixelGrid) ? cs.pixelGrid.length : 0;
-          cs.logFn(
-            `[sort] #${cs.sortRunId} start`,
-            { startMs: cs.sortStartMs, cubeCount, inversionRatio: ratio },
-          );
+
+        if (typeof logFn === "function") {
+          const cubeCount = Array.isArray(cs.pixelGrid)
+            ? cs.pixelGrid.length
+            : 0;
+
+          logFn(`[sort] #${cs.sortRunId} start`, {
+            startMs: cs.sortStartMs,
+            cubeCount,
+            inversionRatio: ratio,
+          });
         }
         cs.active = true;
       },
@@ -233,7 +272,11 @@ export default (renderer, params) => {
   box.getCenter(center);
 
   const maxDim = Math.max(size.x, size.y, size.z);
-  camera.position.set(center.x + maxDim * 0.8, center.y + maxDim * 0.6, center.z + maxDim * 2.0);
+  camera.position.set(
+    center.x + maxDim * 0.8,
+    center.y + maxDim * 0.6,
+    center.z + maxDim * 2.0,
+  );
   camera.lookAt(center);
   controls.target.copy(center);
   controls.update();
@@ -271,7 +314,8 @@ export default (renderer, params) => {
 
   const disposeObject3D = (obj) => {
     if (!obj) return;
-    if (obj.geometry && typeof obj.geometry.dispose === "function") obj.geometry.dispose();
+    if (obj.geometry && typeof obj.geometry.dispose === "function")
+      obj.geometry.dispose();
     if (obj.material) disposeMaterial(obj.material);
   };
 
@@ -286,18 +330,17 @@ export default (renderer, params) => {
     // Stop any scheduled unsort/diffusion timers.
     try {
       if (cubes && cubes.unsortTimeoutId != null) {
-        // eslint-disable-next-line no-undef
-        if (typeof clearTimeout === "function") clearTimeout(cubes.unsortTimeoutId);
+        const { clearTimeout } = globalThis;
+        if (typeof clearTimeout === "function") {
+          clearTimeout(cubes.unsortTimeoutId);
+        }
         cubes.unsortTimeoutId = null;
       }
-    } catch (_) {
-      // ignore
-    }
-    try {
-      if (cubes && cubes.diffuseIntervalId != null) {
-        // eslint-disable-next-line no-undef
-        if (typeof clearInterval === "function") clearInterval(cubes.diffuseIntervalId);
-        cubes.diffuseIntervalId = null;
+      const { clearInterval } = globalThis;
+      if (typeof clearInterval === "function") {
+        clearUnsortDiffuse(cubes, clearInterval);
+      } else {
+        clearUnsortDiffuse(cubes);
       }
     } catch (_) {
       // ignore
@@ -310,7 +353,13 @@ export default (renderer, params) => {
     }
 
     try {
-      if (controls && typeof controls.dispose === "function") controls.dispose();
+    } catch (_) {
+      // ignore
+    }
+
+    try {
+      if (controls && typeof controls.dispose === "function")
+        controls.dispose();
     } catch (_) {
       // ignore
     }
@@ -325,4 +374,3 @@ export default (renderer, params) => {
     }
   };
 };
-

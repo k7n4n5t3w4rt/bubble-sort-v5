@@ -61,12 +61,24 @@ const makeDiffuseTick = ({
     const rawSteps = tickMs > 0 ? Math.floor(dt / tickMs) : 1;
     const steps = Math.min(
       Math.max(1, rawSteps),
-      typeof maxCatchUpSteps === "number" && maxCatchUpSteps > 0 ? maxCatchUpSteps : 120,
+      typeof maxCatchUpSteps === "number" && maxCatchUpSteps > 0
+        ? maxCatchUpSteps
+        : 120,
     );
 
     for (let step = 0; step < steps; step++) {
-      if (cubes.diffuseRunToken !== runToken || state.completedRef.value) return;
-      doSwaps(cubes, n, cappedSwapsPerTick, use2D, resolvedCols, radius, randomFn, setCubeGreyscale);
+      if (cubes.diffuseRunToken !== runToken || state.completedRef.value)
+        return;
+      doSwaps(
+        cubes,
+        n,
+        cappedSwapsPerTick,
+        use2D,
+        resolvedCols,
+        radius,
+        randomFn,
+        setCubeGreyscale,
+      );
     }
 
     if (t - state.lastCheckAt >= checkEveryMs) {
@@ -87,4 +99,3 @@ const makeDiffuseTick = ({
 import doSwaps from "./doSwaps.js";
 
 export default makeDiffuseTick;
-

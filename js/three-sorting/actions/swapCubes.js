@@ -1,7 +1,7 @@
 // ------------------------------------------------------------
 // HELPERS
 // ------------------------------------------------------------
-import makeAnimateSwap from "./animateSwap.js";
+import animateSwap from "./animateSwap.js";
 import applySwap from "./applySwap.js";
 
 /**
@@ -11,11 +11,10 @@ import applySwap from "./applySwap.js";
  * @param {number} b
  * @param {number} scaleZ
  * @param {number} speed
- * @param {Function} anime
+ * @param {import("./types.js").AnimeRunner} anime
  */
 const swapCubes = async (cubeState, a, b, scaleZ, speed, anime) => {
-  const animateSwap = makeAnimateSwap(scaleZ, speed, anime);
-  const { animA, animB } = animateSwap(cubeState, a, b) || {};
+  const { animA, animB } = animateSwap(scaleZ, speed, anime, cubeState, a, b);
 
   const aFinished = animA && animA.finished;
   const bFinished = animB && animB.finished;
@@ -28,4 +27,3 @@ const swapCubes = async (cubeState, a, b, scaleZ, speed, anime) => {
 };
 
 export default swapCubes;
-

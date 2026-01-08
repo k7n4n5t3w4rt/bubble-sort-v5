@@ -33,18 +33,21 @@ test("move() stops after a full no-swap pass and schedules unsort+restart", () =
     moving: false,
     active: true,
     passHadSwap: false,
-    // Inject schedule + diffusion timers so we can assert scheduling.
-    scheduleUnsort: (cs, delayMs, unsortFn) => {
+
+    // Inject timers so we can assert scheduling.
+    setTimeoutFn: (cb, delayMs) => {
       captured.delay = delayMs;
-      captured.cb = () => unsortFn && unsortFn(cs);
+
+      captured.cb = cb;
       return 1;
     },
+    clearTimeoutFn: () => {},
     setIntervalFn: (cb, ms) => {
       intervalCaptured.cb = cb;
       intervalCaptured.ms = ms;
       return 99;
     },
-    clearIntervalFn: () => { },
+    clearIntervalFn: () => {},
     nowFn: () => t,
     // Deterministic random for unsort (doesn't matter much for this test)
     randomFn: () => 0,
@@ -99,7 +102,7 @@ test("move() starts a new pass when swaps occurred (does not stop)", () => {
       captured.delay = delay;
       return 1;
     },
-    clearTimeoutFn: () => { },
+    clearTimeoutFn: () => {},
   };
 
   // First call swaps and advances to nextIndex.
@@ -115,4 +118,3 @@ test("move() starts a new pass when swaps occurred (does not stop)", () => {
   should(cubes.passHadSwap).be.exactly(false);
   should(captured.cb).be.exactly(null);
 });
-

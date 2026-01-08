@@ -43,9 +43,14 @@ const execFactory = async (e, testies) => {
     faucetMessages = [...faucetMessages, ...messages];
   }
 
+  // Only emit valid TAP result lines for faucet (filter out console logs)
+  const tapLines = faucetMessages.filter(
+    (line) => line.startsWith("ok - ") || line.startsWith("not ok - "),
+  );
+
   // Log this out for the faucet reporter
-  console.log(`1..${faucetMessages.length}`);
-  faucetMessages
+  console.log(`1..${tapLines.length}`);
+  tapLines
     .sort((a, b) => {
       // faucet needs the messages to be sorted by test number
       const aNum = cleanInt(a.split(" ")[1]);

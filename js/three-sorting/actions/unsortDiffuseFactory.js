@@ -11,6 +11,32 @@ import setCubeGreyscale from "./setCubeGreyscale.js";
 import fillValuesBuffer from "./fillValuesBuffer.js";
 import makeDiffuseTick from "./makeDiffuseTick.js";
 
+// Track active diffusion intervals without storing IDs on the cubes state
+const diffuseIntervalMap = new WeakMap();
+
+/**
+ * Clear any active unsort/diffusion interval for the given cubes state.
+ * Does not rely on a cubes.diffuseIntervalId field.
+ *
+ * @param {any} cubes
+ * @param {(id:any)=>void} [clearIntervalFn]
+ */
+export const clearUnsortDiffuse = (
+  cubes,
+  clearIntervalFn = globalThis.clearInterval,
+) => {
+  try {
+    const id = diffuseIntervalMap.get(cubes);
+    if (id != null && typeof clearIntervalFn === "function") {
+      clearIntervalFn(id);
+    }
+  } catch {
+    // ignore
+  } finally {
+    diffuseIntervalMap.delete(cubes);
+  }
+};
+
 /**
  * Progressive "unsort" diffusion: cubes do not move; values/colors diffuse via many
  * small local swaps until the inversion ratio reaches target (or maxMs elapses).
@@ -46,13 +72,14 @@ import makeDiffuseTick from "./makeDiffuseTick.js";
  * @param {(cb: (...args:any[]) => any, ms: number) => any} [setInterval]
  * @param {(id: any) => void} [clearInterval]
  * @param {() => number} [nowFn]
+ * @param {() => number} [randomFn]
  */
-export const makeUnsortDiffuse = (
+export const unsortDiffuseFactory = (
   setInterval = globalThis.setInterval,
   clearInterval = globalThis.clearInterval,
   nowFn = nowMs,
+  randomFn = Math.random,
 ) => {
-
   /**
    * @param {any} cubes
    * @param {UnsortDiffuseOptions} [options]
@@ -71,7 +98,7 @@ export const makeUnsortDiffuse = (
       checkEveryMs = 100,
       maxCatchUpSteps = 120,
       swapsPerTick,
-      randomFn = Math.random,
+      randomFn: optionsRandomFn,
       onProgress,
       onComplete,
     } = options;
@@ -104,9 +131,13 @@ export const makeUnsortDiffuse = (
     }
 
     const resolvedCols =
-      typeof cols === "number" && cols > 0 ? cols : Math.max(1, Number(cubes.gridCols || 1));
+      typeof cols === "number" && cols > 0
+        ? cols
+        : Math.max(1, Number(cubes.gridCols || 1));
     const use2D = resolvedCols > 0 && n % resolvedCols === 0;
-    const r0 = Number.isFinite(Number(neighborRadius)) ? Math.floor(Number(neighborRadius)) : 1;
+    const r0 = Number.isFinite(Number(neighborRadius))
+      ? Math.floor(Number(neighborRadius))
+      : 1;
     const radius = Math.max(1, Math.min(10, r0));
 
     const effectiveMaxMs =
@@ -115,8 +146,14 @@ export const makeUnsortDiffuse = (
         : Math.max(0, minMaxMs, n * msPerCube);
 
     // Cancel any existing diffusion loop.
-    if (cubes.diffuseIntervalId != null && typeof clearInterval === "function") {
-      clearInterval(cubes.diffuseIntervalId);
+    if (typeof clearInterval === "function") {
+      try {
+        clearUnsortDiffuse(cubes, clearInterval);
+      } catch (_) {
+        // ignore
+      }
+    } else {
+      clearUnsortDiffuse(cubes);
     }
 
     cubes.active = false;
@@ -160,18 +197,19 @@ export const makeUnsortDiffuse = (
         );
       }
 
-      if (cubes.diffuseIntervalId != null) {
-        if (typeof clearInterval === "function") clearInterval(cubes.diffuseIntervalId);
-        // Extra safety: attempt global clearInterval too (helps if a custom timer impl is used).
-        // eslint-disable-next-line no-undef
-        if (clearInterval !== globalThis.clearInterval && typeof globalThis.clearInterval === "function") {
-          globalThis.clearInterval(cubes.diffuseIntervalId);
-        }
+      try {
+        clearUnsortDiffuse(cubes, clearInterval);
+      } catch (_) {
+        // ignore
       }
-      cubes.diffuseIntervalId = null;
       cubes.diffusing = false;
 
-      onComplete({ ratio: lastRatio, reason, elapsedMs, maxMs: effectiveMaxMs });
+      onComplete({
+        ratio: lastRatio,
+        reason,
+        elapsedMs,
+        maxMs: effectiveMaxMs,
+      });
     };
 
     if (lastRatio >= targetRatio) {
@@ -198,7 +236,8 @@ export const makeUnsortDiffuse = (
       use2D,
       resolvedCols,
       radius,
-      randomFn,
+      randomFn:
+        typeof optionsRandomFn === "function" ? optionsRandomFn : randomFn,
       setCubeGreyscale,
       checkEveryMs,
       targetRatio,
@@ -210,14 +249,14 @@ export const makeUnsortDiffuse = (
       inversionRatioFromValues,
     });
 
-    cubes.diffuseIntervalId = setInterval(tick, tickMs);
+    const intervalId = setInterval(tick, tickMs);
+    diffuseIntervalMap.set(cubes, intervalId);
 
     return cubes;
   };
 };
 
-const unsortDiffuse = makeUnsortDiffuse();
+const unsortDiffuse = unsortDiffuseFactory();
 // Export the function that uses the global setInterval and clearInterval as
 // default
 export default unsortDiffuse;
-
