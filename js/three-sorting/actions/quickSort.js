@@ -7,150 +7,77 @@
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
-import nowMs from "./nowMs.js";
-import startQuick from "./startQuick.js";
-import scheduleRepeatQuick from "./scheduleRepeatQuick.js";
-import onQuickPivotPlaced from "./onQuickPivotPlaced.js";
-import swapCubes from "./swapCubes.js";
+// import swapCubes from "./swapCubes.js";
 
 /**
- * Quick sort (iterative) with animated swaps.
- * Reuses shared unsort/diffuse + restart flow via unsortAndStart.
- */
-/**
- * Quick sort (iterative, animated).
+ * In-place quicksort for CubeState.pixelGrid, sorting by Cube.value (ascending).
+ * Mutates cubeState.pixelGrid.
+ *
+ * Lomuto partition scheme (pivot = last element).
+ * Average: O(n log n), Worst: O(n^2) depending on pivot/input.
+ *
  * @param {CubeState} cubeState
- * @param {number} speed
- * @param {number} scaleZ
- * @param {Function} anime
+//  * @param {number} speed
+//  * @param {number} scaleZ
+//  * @param {Function} anime
  * @returns {Promise<CubeState>}
  */
-const quickSort = async (cubeState, speed, scaleZ, anime) => {
-  // defensive: return early if cubeState is not valid
-  if (!cubeState || !Array.isArray(cubeState.pixelGrid)) return cubeState;
+// const quickSort = async (cubeState, speed, scaleZ, anime) => {
+const quickSort = async (cubeState) => {
+  const pixelGrid = cubeState.pixelGrid;
 
-  // defensive: return early if cubeState is not active
-  if (!cubeState.active) return cubeState;
+  /**
+   * Swap two elements in pixelGrid.
+   * @param {number} i
+   * @param {number} j
+   */
+  const swap = (i, j) => {
+    const tmp = pixelGrid[i];
+    pixelGrid[i] = pixelGrid[j];
+    pixelGrid[j] = tmp;
+  };
 
-  // Initialize if needed (e.g., first run or after unsort restart).
-  if (!cubeState.quickInit || !Array.isArray(cubeState.quickStack) || cubeState.quickStack.length === 0) {
-    startQuick(cubeState);
-  }
-  if (cubeState.moving) return cubeState;
+  /**
+   * Partition pixelGrid[lo..hi] around pivot pixelGrid[hi].value and return pivot’s final index.
+   * All elements with value <= pivotValue move to the left side.
+   *
+   * @param {number} lo
+   * @param {number} hi
+   * @returns {number}
+   */
+  const partition = (lo, hi) => {
+    const pivotValue = pixelGrid[hi].value;
+    let i = lo;
 
-  const stack = Array.isArray(cubeState.quickStack) ? cubeState.quickStack : [];
-  let part = cubeState.quickPartition;
-  const maxIterations = Math.max(2000, (cubeState.pixelGrid.length || 0) * 50);
-  let iterations = 0;
-
-  // Process until we either start an animation or finish.
-  while (!cubeState.moving && cubeState.active && iterations < maxIterations) {
-    while ((!part || part.done) && stack.length > 0) {
-      const seg = stack.pop();
-      if (!seg) break;
-      const [lo, hi] = seg;
-      if (hi - lo <= 0) continue;
-      part = {
-        lo,
-        hi,
-        i: lo,
-        j: lo,
-        pivotIndex: hi,
-        pivotValue: cubeState.pixelGrid[hi] && cubeState.pixelGrid[hi].value,
-        done: false,
-      };
-      cubeState.quickPartition = part;
-    }
-
-    if (!part || part.done) {
-      // Finished all partitions
-      cubeState.active = false;
-      cubeState.sortEndMs = nowMs();
-      cubeState.quickPartition = null;
-      cubeState.quickStack = [];
-      scheduleRepeatQuick(cubeState);
-      return cubeState;
-    }
-
-    // Partition step (Lomuto)
-    if (!part) {
-      // Defensive: should not happen, but avoid null access if state resets unexpectedly.
-      cubeState.quickPartition = null;
-      return cubeState;
-    }
-
-    const partLo = part.lo;
-    const partHi = part.hi;
-    const partPivotIndex = part.pivotIndex;
-    const partPivotValue = part.pivotValue;
-    const partJ = part.j;
-
-    if (part.j < partHi) {
-      const cubeJ = cubeState.pixelGrid[part.j];
-      const pivotVal = partPivotValue;
-      if (cubeJ && cubeJ.value < pivotVal) {
-        const swapI = part.i;
-        const swapJ = part.j;
-        part.i += 1;
-        part.j += 1;
-        if (swapI !== swapJ) {
-          await swapCubes(cubeState, swapI, swapJ, scaleZ, speed, anime);
-        }
-        // no-op swap (same index); continue loop
-        continue;
+    for (let j = lo; j < hi; j++) {
+      if (pixelGrid[j].value <= pivotValue) {
+        swap(i, j);
+        i++;
       }
-      part.j += 1;
-      continue;
     }
 
-    // Place pivot
-    const pivotPos = part.i;
-    if (pivotPos !== partHi) {
-      part.done = true;
-      await swapCubes(
-        cubeState,
-        pivotPos,
-        partHi,
-        scaleZ,
-        speed,
-        anime,
-      );
-      continue;
-    }
+    swap(i, hi);
+    return i;
+  };
 
-    // Pivot already in place
-    if (part) {
-      part.done = true;
-      if (pivotPos - 1 > partLo) stack.push([partLo, pivotPos - 1]);
-      if (pivotPos + 1 < partHi) stack.push([pivotPos + 1, partHi]);
-      cubeState.quickPartition = {
-        lo: partLo,
-        hi: partHi,
-        i: pivotPos,
-        j: partJ,
-        pivotIndex: partPivotIndex,
-        pivotValue: partPivotValue,
-        done: true,
-      };
-      part = cubeState.quickPartition;
-      cubeState.quickStack = stack;
-    }
-    // loop continues to pick next partition
+  /**
+   * Quicksort subarray pixelGrid[lo..hi].
+   * @param {number} lo
+   * @param {number} hi
+   */
+  const sort = (lo, hi) => {
+    if (lo >= hi) return;
+    const p = partition(lo, hi);
+    sort(lo, p - 1);
+    sort(p + 1, hi);
+  };
 
-    iterations += 1;
-  }
-
-  if (iterations >= maxIterations) {
-    // Safety net to avoid runaway loops in tests/dev; restart cycle.
-    cubeState.active = false;
-    cubeState.sortEndMs = nowMs();
-    cubeState.quickPartition = null;
-    cubeState.quickStack = [];
-    scheduleRepeatQuick(cubeState);
-  }
-
+  sort(0, pixelGrid.length - 1);
   return cubeState;
 };
 
-export default quickSort;
+// Usage:
+// quickSort(cubeState);
+// cubeState.pixelGrid is now sorted by cube.value
 
+export default quickSort;
