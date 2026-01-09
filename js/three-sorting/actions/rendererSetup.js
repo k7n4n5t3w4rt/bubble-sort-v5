@@ -26,4 +26,3 @@ export default () => {
   globalThis.__bubbleSortRenderer = renderer;
   return renderer;
 };
-

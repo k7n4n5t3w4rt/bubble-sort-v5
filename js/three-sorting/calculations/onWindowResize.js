@@ -1,8 +1,4 @@
-export default (
-  camera ,
-  renderer ,
-  window ,
-)  => {
+export default (camera, renderer, window) => {
   return () => {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();

@@ -1,6 +1,6 @@
 import Stats from "./vendor/stats.module.js";
-export default ()  => {
-  const stats = new (/** @type {any} */ (Stats))();
+export default () => {
+  const stats = new /** @type {any} */ (Stats)();
   stats.setMode(0);
 
   // assign css to align it properly on the page

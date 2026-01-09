@@ -4,15 +4,15 @@
 import render from "./render.js";
 
 const animate = (
-  sceneData ,
-  speed ,
-  scaleX ,
-  scaleY ,
-  scaleZ ,
-  cols ,
-  rows ,
-  algorithm ,
-)  => {
+  sceneData,
+  speed,
+  scaleX,
+  scaleY,
+  scaleZ,
+  cols,
+  rows,
+  algorithm,
+) => {
   const { stats, scene, camera, renderer, reticleStuff, cubes } = sceneData;
   // const { stats, scene, camera, renderer, reticleStuff } = sceneData;
 

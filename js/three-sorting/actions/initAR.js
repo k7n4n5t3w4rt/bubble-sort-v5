@@ -40,9 +40,9 @@ export const initAR = (renderer, params) => {
     try {
       // @ts-ignore - ad-hoc internal property
       renderer.__bubbleSortCleanup();
-      } catch {
-    // ignore cleanup errors
-  }
+    } catch {
+      // ignore cleanup errors
+    }
     // @ts-ignore - ad-hoc internal property
     renderer.__bubbleSortCleanup = null;
   }
@@ -140,9 +140,9 @@ export const initAR = (renderer, params) => {
     const onLost = (e) => {
       try {
         if (e && typeof e.preventDefault === "function") e.preventDefault();
-        } catch {
-    // ignore
-  }
+      } catch {
+        // ignore
+      }
 
       console.log("[webgl] context lost", { mode: "ar", ...getStats() });
     };
@@ -218,9 +218,9 @@ export const initAR = (renderer, params) => {
   renderer.__bubbleSortCleanup = () => {
     try {
       renderer.setAnimationLoop(null);
-      } catch {
-    // ignore
-  }
+    } catch {
+      // ignore
+    }
 
     // Stop any scheduled unsort/diffusion timers.
     try {
@@ -234,31 +234,31 @@ export const initAR = (renderer, params) => {
       } else {
         clearUnsortDiffuse(cubes);
       }
-      } catch {
-    // ignore
-  }
+    } catch {
+      // ignore
+    }
 
     try {
       window.removeEventListener("resize", onResize);
-      } catch {
-    // ignore
-  }
+    } catch {
+      // ignore
+    }
 
     try {
       controller.removeEventListener("select", onSelect);
       scene.remove(controller);
-      } catch {
-    // ignore
-  }
+    } catch {
+      // ignore
+    }
 
     // Dispose scene objects/materials/geometries to free GPU memory.
     try {
       if (scene && typeof scene.traverse === "function") {
         scene.traverse(disposeObject3D);
       }
-      } catch {
-    // ignore
-  }
+    } catch {
+      // ignore
+    }
   };
 };
 

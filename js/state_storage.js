@@ -1,9 +1,6 @@
 import conf from "./config.js";
 
-const getItem  = (
-  itemName ,
-  rememberMe  = conf.REMEMBER_ME,
-)  => {
+const getItem = (itemName, rememberMe = conf.REMEMBER_ME) => {
   // Browser only
   if (typeof process === "undefined" || process.release.name !== "node") {
     if (typeof rememberMe !== "undefined" && rememberMe === true) {
@@ -19,11 +16,7 @@ const getItem  = (
   }
 };
 
-const setItem  = (
-  itemName ,
-  itemValue ,
-  rememberMe  = conf.REMEMBER_ME,
-)  => {
+const setItem = (itemName, itemValue, rememberMe = conf.REMEMBER_ME) => {
   // Browser only
   if (typeof process === "undefined" || process.release.name !== "node") {
     if (typeof rememberMe !== "undefined" && rememberMe === true) {
@@ -39,9 +32,7 @@ const setItem  = (
   }
 };
 
-const clear  = (
-  rememberMe  = conf.REMEMBER_ME,
-)  => {
+const clear = (rememberMe = conf.REMEMBER_ME) => {
   // Browser only
   if (typeof process === "undefined" || process.release.name !== "node") {
     if (typeof rememberMe !== "undefined" && rememberMe === true) {

@@ -29,7 +29,6 @@ const finalizeSwap = ({
   i,
   j,
 }) => {
-
   cubeA.position.x = cubeBStartX;
   cubeA.position.y = cubeBStartY;
   cubeA.position.z = cubeBStartZ;
@@ -44,4 +43,3 @@ const finalizeSwap = ({
 };
 
 export default finalizeSwap;
-

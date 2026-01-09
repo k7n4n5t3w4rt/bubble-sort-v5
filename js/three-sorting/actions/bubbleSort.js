@@ -17,7 +17,7 @@ import scheduleRepeat from "./scheduleRepeat.js";
  * @param {AnimeRunner} anime
  * @returns {Promise<CubeState>}
  */
-export const bubbleSort = async (cubeState, speed, scaleZ, anime) => {
+const bubbleSort = async (cubeState, speed, scaleZ, anime) => {
   // Stop the render loop from invoking quickSort again next frame.
   if (cubeState) cubeState.active = false;
   const pixelGrid = cubeState.pixelGrid;

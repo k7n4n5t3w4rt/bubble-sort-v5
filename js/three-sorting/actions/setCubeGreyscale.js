@@ -16,4 +16,3 @@ const setCubeGreyscale = (cube, v) => {
 };
 
 export default setCubeGreyscale;
-

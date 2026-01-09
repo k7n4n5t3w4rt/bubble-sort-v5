@@ -1,0 +1,14 @@
+# Ignore build and distribution outputs
+node_modules/
+dist/
+docs/
+web_modules/
+
+# Ignore third-party vendor libraries and minified files
+js/vendor/
+*.min.js
+
+# Ignore generated or copied assets under docs
+docs/js/
+docs/css/
+docs/img/

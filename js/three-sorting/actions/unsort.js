@@ -1,8 +1,4 @@
-
-const shuffleInPlace = (
-  arr ,
-  random ,
-)  => {
+const shuffleInPlace = (arr, random) => {
   for (let i = arr.length - 1; i > 0; i--) {
     const j = Math.floor(random() * (i + 1));
     const tmp = arr[i];
@@ -12,7 +8,7 @@ const shuffleInPlace = (
   return arr;
 };
 
-const setCubeGreyscale = (cube , v )  => {
+const setCubeGreyscale = (cube, v) => {
   if (
     cube &&
     cube.material &&
@@ -39,10 +35,7 @@ const setCubeGreyscale = (cube , v )  => {
  *
  * Designed to be fast-testable by injecting `random`.
  */
-const unsort = (
-  cubes ,
-  random  = Math.random,
-)  => {
+const unsort = (cubes, random = Math.random) => {
   if (!cubes || !Array.isArray(cubes.pixelGrid)) return cubes;
 
   const values = cubes.pixelGrid.map((c) => c && c.bubble_value);
