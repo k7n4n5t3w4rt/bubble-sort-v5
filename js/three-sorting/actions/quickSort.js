@@ -1,8 +1,8 @@
 // --------------------------------------------------
 // TYPES
 // --------------------------------------------------
-/** @typedef {import("./types.js").Cube} Cube */
 /** @typedef {import("./types.js").CubeState} CubeState */
+/** @typedef {import("./types.js").AnimeRunner} AnimeRunner */
 /** @typedef {import("./types.js").QuickPartition} QuickPartition */
 // --------------------------------------------------
 // HELPERS
@@ -18,6 +18,9 @@ import scheduleRepeatQuick from "./scheduleRepeatQuick.js";
  * Average: O(n log n), Worst: O(n^2) depending on pivot/input.
  *
  * @param {CubeState} cubeState
+ * @param {number} speed
+ * @param {number} scaleZ
+ * @param {AnimeRunner} anime
  * @returns {Promise<CubeState>}
  */
 const quickSort = async (cubeState, speed = 1, scaleZ = 1, anime) => {

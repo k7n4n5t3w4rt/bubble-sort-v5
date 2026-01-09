@@ -1,9 +1,7 @@
 //------------------------------------------------------------------
 // TYPEDEFS
 //------------------------------------------------------------------
-/**
- * @typedef {import("../js/three-sorting/actions/types.js").AnimeRunner} AnimeRunner
- */
+/** @typedef {import("../js/three-sorting/actions/types.js").AnimeRunner} AnimeRunner */
 //------------------------------------------------------------------
 // IMPORT: TESTY
 // ------------------------------------------------------------------
