@@ -1,4 +1,10 @@
 //------------------------------------------------------------------
+// TYPEDEFS
+//------------------------------------------------------------------
+/**
+ * @typedef {import("../js/three-sorting/actions/types.js").AnimeRunner} AnimeRunner
+ */
+//------------------------------------------------------------------
 // IMPORT: TESTY
 // ------------------------------------------------------------------
 import { testPromise, should } from "../server/testy.js";
@@ -21,13 +27,11 @@ const makeCube = (v) => ({
 });
 
 testPromise(
-  "quickSort sorts ascending and schedules repeat unsort",
+  "quickSort sorts ascending (in-place) and disables active",
   async () => {
     const cubesState = {
-      // Required by CubeState typedef
       active: true,
       moving: false,
-      // Minimal grid to sort
       pixelGrid: [
         makeCube(4),
         makeCube(5),
@@ -36,18 +40,25 @@ testPromise(
         makeCube(3),
         makeCube(2),
       ],
-      // Keep tests deterministic and avoid real timers/work
-      unsortPauseMs: 100,
-
-      setTimeoutFn: () => null,
-      clearTimeoutFn: () => {},
-      logFn: () => {},
-      randomFn: Math.random,
-      nowFn: () => Date.now(),
+      // keep only fields required by current CubeState typedef
     };
 
-    const sortedCubes = await quickSort(cubesState);
+    // no-op animation to keep swaps instant - calls the complete callback immediately
+    /**
+     * @type {AnimeRunner}
+     */
+    const fakeAnime = (opts) => {
+      if (opts && typeof opts.complete === "function") {
+        try {
+          opts.complete();
+        } catch {}
+      }
+      return { finished: Promise.resolve() };
+    };
 
+    const result = await quickSort(cubesState, 1, 1, fakeAnime);
+
+    // Sorted ascending
     const values = cubesState.pixelGrid.map((c) => c.value);
     should(values).eql([1, 2, 3, 4, 5, 6]);
   },

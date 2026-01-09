@@ -23,7 +23,7 @@
     "testies/**/*.js",
     "vite.config.js",
     "types/**/*.d.ts"
-  ],
+, "js/three-sorting/actions/OFF_applySwap.js_OFF", "js/setup_mobile_debug.js_OFF", "js/three-sorting/actions/OFF_swapImmediate.js_OFF", "js/three-sorting/actions/OFF_onQuickPivotPlaced.js_OFF"  ],
   "exclude": [
     "node_modules",
     "docs",
