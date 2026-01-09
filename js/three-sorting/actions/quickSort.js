@@ -8,7 +8,7 @@
 // HELPERS
 // --------------------------------------------------
 import swapCubes from "./swapCubes.js";
-import scheduleRepeatQuick from "./scheduleRepeatQuick.js";
+import scheduleRepeatQuick from "./scheduleRepeat.js";
 
 /**
  * In-place quicksort for cubeState.pixelGrid, sorting by Cube.value (ascending).

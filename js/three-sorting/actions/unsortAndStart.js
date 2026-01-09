@@ -6,7 +6,7 @@
 // HELPERS
 // ------------------------------------------------------------------
 import unsortDiffuse from "./unsortDiffuseFactory.js";
-import startQuick from "./startQuick.js";
+import startSorting from "./startSorting.js";
 
 /**
  * Runs the diffusion/unsort phase, then starts the next quick sort run.
@@ -33,7 +33,7 @@ const unsortAndStart = (cubeState) => {
       elapsedMs: _elapsedMs,
       maxMs: _maxMs,
     }) => {
-      startQuick(cubeState, { inversionRatio: ratio });
+      startSorting(cubeState, { inversionRatio: ratio });
     },
   });
 };

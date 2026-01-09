@@ -9,7 +9,7 @@ import scheduleUnsort from "./scheduleUnsortFactory.js";
 import unsortAndStart from "./unsortAndStart.js";
 
 /** @param {CubeState} cubeState */
-const scheduleRepeatQuick = (cubeState) => {
+const scheduleRepeat = (cubeState) => {
   // Determine delay before unsorting - default to 10s if not specified (aligns with other flows)
   const delayMs =
     cubeState && typeof cubeState.unsortPauseMs === "number"
@@ -20,4 +20,4 @@ const scheduleRepeatQuick = (cubeState) => {
   );
 };
 
-export default scheduleRepeatQuick;
+export default scheduleRepeat;

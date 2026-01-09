@@ -22,7 +22,7 @@ const startQuick = (cubeState, meta = {}) => {
       ? cubeState.pixelGrid.length
       : 0;
 
-    console.log(`[sort] #${cubeState.sortRunId} start (quick)`, {
+    console.log(`[sort] #${cubeState.sortRunId} start`, {
       startMs: cubeState.sortStartMs,
       cubeCount,
       ...meta,
