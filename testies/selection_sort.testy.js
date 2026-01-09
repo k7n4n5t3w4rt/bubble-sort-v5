@@ -9,7 +9,7 @@ import { testPromise, should } from "../server/testy.js";
 // ------------------------------------------------------------------
 // IMPORT: FUNCTION UNDER TEST
 // ------------------------------------------------------------------
-import quickSort from "../js/three-sorting/actions/quickSort.js";
+import selectionSort from "../js/three-sorting/actions/selectionSort.js";
 
 /**
  * @param {number} v
@@ -25,7 +25,7 @@ const makeCube = (v) => ({
 });
 
 testPromise(
-  "quickSort.js: quickSort(...) sorts ascending (in-place)",
+  "selectionSort.js: selectionSort(...) sorts ascending (in-place)",
   async () => {
     const cubesState = {
       active: true,
@@ -54,7 +54,7 @@ testPromise(
       return { finished: Promise.resolve() };
     };
 
-    const result = await quickSort(cubesState, 1, 1, fakeAnime);
+    const result = await selectionSort(cubesState, 1, 1, fakeAnime);
 
     // Sorted ascending
     const values = cubesState.pixelGrid.map((c) => c.value);

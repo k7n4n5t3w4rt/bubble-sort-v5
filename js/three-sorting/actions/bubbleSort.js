@@ -6,11 +6,8 @@
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
-import { scheduleUnsortFactory } from "./scheduleUnsortFactory.js";
-import { unsortDiffuseFactory } from "./unsortDiffuseFactory.js";
 import swapCubes from "./swapCubes.js";
-import nowMs from "./nowMs.js";
-import scheduleRepeatQuick from "./scheduleRepeat.js";
+import scheduleRepeat from "./scheduleRepeat.js";
 
 /**
  *
@@ -52,7 +49,7 @@ export const bubbleSort = async (cubeState, speed, scaleZ, anime) => {
   }
 
   // Repeat: wait N ms, unsort (diffuse), then start next quick sort run
-  scheduleRepeatQuick(cubeState);
+  scheduleRepeat(cubeState);
 
   return cubeState;
 };

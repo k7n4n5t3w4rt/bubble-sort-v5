@@ -25,7 +25,7 @@ const makeCube = (v) => ({
 });
 
 testPromise(
-  "bubbleSort sorts ascending (in-place) and disables active",
+  "bubbleSort.js: bubbleSort(...) sorts ascending (in-place)",
   async () => {
     const cubesState = {
       active: true,
