@@ -5,7 +5,6 @@
 // ------------------------------------------------------------
 // HELPERS
 // ------------------------------------------------------------
-import unsort from "./unsort.js";
 
 /**
  * Factory that returns an unsort scheduler with injected timers (defaults to globals)
@@ -39,7 +38,6 @@ export const scheduleUnsortFactory = (
   };
 };
 
-export const scheduleUnsort = scheduleUnsortFactory();
-// Export the function that uses the global setTimeout and clearTimeout as
-// default
+// Export the function that uses the global setTimeout and clearTimeout as default
+const scheduleUnsort = scheduleUnsortFactory();
 export default scheduleUnsort;

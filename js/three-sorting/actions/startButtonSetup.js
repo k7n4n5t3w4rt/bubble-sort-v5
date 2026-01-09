@@ -35,8 +35,7 @@ const startButtonSetup = async (
   if (navigator.xr && navigator.xr.isSessionSupported) {
     try {
       // $FlowFixMe
-      arSupported = await navigator.xr.isSessionSupported("immersive-ar");
-    } catch (e) {
+    } catch {
       arSupported = false;
     }
   }
@@ -101,4 +100,3 @@ const startButtonSetup = async (
 };
 
 export default startButtonSetup;
-

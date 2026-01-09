@@ -8,17 +8,7 @@ import * as THREE from "three";
 import pixelGrid from "./pixelGrid.js";
 import scheduleUnsort from "./scheduleUnsortFactory.js";
 import unsortDiffuse from "./unsortDiffuseFactory.js";
-
-const nowMs = () => {
-  // eslint-disable-next-line no-undef
-  if (
-    typeof performance !== "undefined" &&
-    typeof performance.now === "function"
-  ) {
-    return performance.now();
-  }
-  return Date.now();
-};
+import nowMs from "./nowMs.js";
 
 export default (
     reticleStuff,

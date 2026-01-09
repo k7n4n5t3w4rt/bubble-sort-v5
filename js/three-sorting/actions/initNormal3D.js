@@ -50,7 +50,7 @@ export default (renderer, params) => {
     try {
       // @ts-ignore - ad-hoc internal property
       renderer.__bubbleSortCleanup();
-    } catch (_) {
+    } catch {
       // ignore cleanup errors
     }
     // @ts-ignore - ad-hoc internal property
@@ -123,7 +123,7 @@ export default (renderer, params) => {
     const onLost = (e) => {
       try {
         if (e && typeof e.preventDefault === "function") e.preventDefault();
-      } catch (_) {
+      } catch {
         // ignore
       }
 
@@ -323,7 +323,7 @@ export default (renderer, params) => {
   renderer.__bubbleSortCleanup = () => {
     try {
       renderer.setAnimationLoop(null);
-    } catch (_) {
+    } catch {
       // ignore
     }
 
@@ -342,25 +342,25 @@ export default (renderer, params) => {
       } else {
         clearUnsortDiffuse(cubes);
       }
-    } catch (_) {
+    } catch {
       // ignore
     }
 
     try {
       window.removeEventListener("resize", onResize);
-    } catch (_) {
+    } catch {
       // ignore
     }
 
     try {
-    } catch (_) {
+    } catch {
       // ignore
     }
 
     try {
       if (controls && typeof controls.dispose === "function")
         controls.dispose();
-    } catch (_) {
+    } catch {
       // ignore
     }
 
@@ -369,7 +369,7 @@ export default (renderer, params) => {
       if (scene && typeof scene.traverse === "function") {
         scene.traverse(disposeObject3D);
       }
-    } catch (_) {
+    } catch {
       // ignore
     }
   };

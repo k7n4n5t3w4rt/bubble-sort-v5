@@ -7,17 +7,17 @@ import * as THREE from "three";
 // --------------------------------------------------
 
 export default (
-  cols ,
-  rows ,
-  scaleXm ,
-  scaleYm ,
-  scaleZm ,
-  scene ,
-  reticleStuff ,
-)  => {
-  const scaleX  = scaleXm / 100;
-  const scaleY  = scaleYm / 100;
-  const scaleZ  = scaleZm / 100;
+  cols,
+  rows,
+  scaleXm,
+  scaleYm,
+  scaleZm,
+  scene,
+  _reticleStuff,
+) => {
+  const scaleX = scaleXm / 100;
+  const scaleY = scaleYm / 100;
+  const scaleZ = scaleZm / 100;
   //create a group and add the two cubes
   //These cubes can now be rotated / scaled etc as a group
   const pixelGridGroup = new THREE.Group();
@@ -25,14 +25,14 @@ export default (
   // Pre-generate and sort values so the grid starts "already sorted"
   // according to the comparison rule used in `actions/bubbleSort.js`:
   // swap when left > right => sorted is ascending (non-decreasing) in array order.
-  const totalCells  = rows * cols;
-  const sortedValues  = Array.from(
+  const totalCells = rows * cols;
+  const sortedValues = Array.from(
     { length: totalCells },
     () => 255 - Math.ceil(255 * Math.random()),
   ).sort((a, b) => a - b);
 
-  const pixelGridCubes  = [];
-  let valueIndex  = 0;
+  const pixelGridCubes = [];
+  let valueIndex = 0;
   for (let i = 0; i < rows; i++) {
     for (let j = 0; j < cols; j++) {
       const cellColour = sortedValues[valueIndex++];

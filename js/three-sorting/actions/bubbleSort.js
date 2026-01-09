@@ -7,7 +7,6 @@ import { unsortDiffuseFactory } from "./unsortDiffuseFactory.js";
 import swapCubes from "./swapCubes.js";
 
 const nowMs = () => {
-  // eslint-disable-next-line no-undef
   if (
     typeof performance !== "undefined" &&
     typeof performance.now === "function"
@@ -15,43 +14,6 @@ const nowMs = () => {
     return performance.now();
   }
   return Date.now();
-};
-
-const formatMinutesSeconds = (totalMs) => {
-  const totalSeconds = Math.max(0, Math.floor(totalMs / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-  return `${minutes}:${String(seconds).padStart(2, "0")}`;
-};
-
-const startSorting = (cubes, meta = {}) => {
-  cubes.active = true;
-  cubes.moving = false;
-  cubes.currentIndex = 0;
-  cubes.passHadSwap = false;
-  cubes.swapCount = 0;
-  // Bubble-sort optimization:
-  // - passEndIndex: exclusive upper bound for comparisons in the current pass.
-  //   We never need to compare beyond the last known unsorted index.
-  // - lastSwapIndex: last index involved in a swap during the current pass; next
-  //   pass can stop at that index (everything after is already ordered).
-  const n = Array.isArray(cubes?.pixelGrid) ? cubes.pixelGrid.length : 0;
-  cubes.passEndIndex = Math.max(0, n - 1);
-  cubes.lastSwapIndex = 0;
-  cubes.sortStartMs = nowMs();
-  cubes.sortEndMs = undefined;
-
-  cubes.sortRunId = (cubes.sortRunId || 0) + 1;
-  {
-    const cubeCount = Array.isArray(cubes.pixelGrid)
-      ? cubes.pixelGrid.length
-      : 0;
-    console.log(`[sort] #${cubes.sortRunId} start`, {
-      startMs: cubes.sortStartMs,
-      cubeCount,
-      ...meta,
-    });
-  }
 };
 
 const move = (cubes, speed, scaleZ, anime) => {
@@ -65,8 +27,6 @@ const move = (cubes, speed, scaleZ, anime) => {
   //
   //		/js/three-sorting/actions/pixelGrid.js (Line 34)
   //
-  let movingCube1 = true;
-  let movingCube2 = true;
   if (cubes.passHadSwap == null) cubes.passHadSwap = false;
   // Ensure optimization state exists even if startSorting wasn't called (older state).
   if (cubes.passEndIndex == null || !Number.isFinite(cubes.passEndIndex)) {
@@ -91,10 +51,6 @@ const move = (cubes, speed, scaleZ, anime) => {
         cubes.active = false;
         cubes.currentIndex = 0;
         cubes.sortEndMs = nowMs();
-        const sortStartMs =
-          typeof cubes.sortStartMs === "number"
-            ? cubes.sortStartMs
-            : cubes.sortEndMs;
         const delayMs =
           cubes && typeof cubes.unsortPauseMs === "number"
             ? cubes.unsortPauseMs
@@ -208,8 +164,6 @@ const move = (cubes, speed, scaleZ, anime) => {
         //   `Preparing to swap cubes[${currentIndex}]and cubes[${nextIndex}]...`,
         // );
 
-        const cube1StartZ = cube1.position.z;
-        const cube1StartY = cube1.position.y;
         // This will cause all calls to move() to have no effect... until
         // the move has finished and cubes.moving is set back to false
         cubes.moving = true;

@@ -8,8 +8,7 @@
 // HELPERS
 // --------------------------------------------------
 // import swapcubeState from "./swapcubeState.js";
-import scheduleUnsort from "./scheduleUnsortFactory.js";
-import unsortAndStart from "./unsortAndStart.js";
+import scheduleRepeatQuick from "./scheduleRepeatQuick.js";
 
 /**
  * In-place quicksort for cubeState.pixelGrid, sorting by Cube.value (ascending).
@@ -79,11 +78,7 @@ const quickSort = async (cubeState) => {
   sort(0, pixelGrid.length - 1);
 
   // Repeat: wait N ms, unsort (diffuse), then start next quick sort run
-  const delayMs =
-    cubeState && typeof cubeState.unsortPauseMs === "number"
-      ? cubeState.unsortPauseMs
-      : 10_000;
-  scheduleUnsort(cubeState, delayMs, (cs) => unsortAndStart(cs));
+  scheduleRepeatQuick(cubeState);
 
   return cubeState;
 };

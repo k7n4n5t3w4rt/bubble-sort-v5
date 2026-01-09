@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unused-modules */
 /**
  * Swap two indices in the pixelGrid without animation.
  * @param {import("./types.js").CubeState} cubeState
@@ -11,4 +12,3 @@ const applySwap = (cubeState, a, b) => {
 };
 
 export default applySwap;
-

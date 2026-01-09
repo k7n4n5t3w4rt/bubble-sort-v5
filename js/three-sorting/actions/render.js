@@ -1,7 +1,6 @@
 // --------------------------------------------------
 // THREE.js
 // --------------------------------------------------
-import * as THREE from "three";
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
@@ -22,8 +21,6 @@ export default (
   algorithm = "bubble",
 ) => {
   return async (timestamp, frame) => {
-    const scaleX = scaleXm / 100;
-    const scaleY = scaleYm / 100;
     const scaleZ = scaleZm / 100;
 
     const session =
@@ -49,7 +46,9 @@ export default (
     // XR-only: update reticle pose/visibility.
     if (inXRFrame && reticleStuff && reticleStuff.active) {
       if (reticleStuff.hitTestSourceInitialized) {
-        const hitTestResults = frame.getHitTestResults(reticleStuff.hitTestSource);
+        const hitTestResults = frame.getHitTestResults(
+          reticleStuff.hitTestSource,
+        );
         if (hitTestResults.length > 0) {
           const hit = hitTestResults[0];
           const pose = hit.getPose(reticleStuff.localSpace);
@@ -70,8 +69,8 @@ export default (
         algorithm === "selection"
           ? selectionSort
           : algorithm === "quick"
-            ? quickSort
-            : bubbleSort;
+          ? quickSort
+          : bubbleSort;
       sorter(cubes, speed, scaleZ, anime);
     }
 

@@ -1,4 +1,5 @@
-import { h, render } from "preact";
+/* eslint-disable import/no-unused-modules */
+import { render } from "preact";
 import { html } from "htm/preact";
 import App from "./App.js";
 

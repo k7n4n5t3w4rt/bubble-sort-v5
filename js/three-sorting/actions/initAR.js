@@ -40,9 +40,9 @@ export const initAR = (renderer, params) => {
     try {
       // @ts-ignore - ad-hoc internal property
       renderer.__bubbleSortCleanup();
-    } catch (_) {
-      // ignore cleanup errors
-    }
+      } catch {
+    // ignore cleanup errors
+  }
     // @ts-ignore - ad-hoc internal property
     renderer.__bubbleSortCleanup = null;
   }
@@ -140,9 +140,9 @@ export const initAR = (renderer, params) => {
     const onLost = (e) => {
       try {
         if (e && typeof e.preventDefault === "function") e.preventDefault();
-      } catch (_) {
-        // ignore
-      }
+        } catch {
+    // ignore
+  }
 
       console.log("[webgl] context lost", { mode: "ar", ...getStats() });
     };
@@ -218,49 +218,47 @@ export const initAR = (renderer, params) => {
   renderer.__bubbleSortCleanup = () => {
     try {
       renderer.setAnimationLoop(null);
-    } catch (_) {
-      // ignore
-    }
+      } catch {
+    // ignore
+  }
 
     // Stop any scheduled unsort/diffusion timers.
     try {
       if (cubes && cubes.unsortTimeoutId != null) {
-        // eslint-disable-next-line no-undef
         if (typeof clearTimeout === "function")
           clearTimeout(cubes.unsortTimeoutId);
         cubes.unsortTimeoutId = null;
       }
-      // eslint-disable-next-line no-undef
       if (typeof clearInterval === "function") {
         clearUnsortDiffuse(cubes, clearInterval);
       } else {
         clearUnsortDiffuse(cubes);
       }
-    } catch (_) {
-      // ignore
-    }
+      } catch {
+    // ignore
+  }
 
     try {
       window.removeEventListener("resize", onResize);
-    } catch (_) {
-      // ignore
-    }
+      } catch {
+    // ignore
+  }
 
     try {
       controller.removeEventListener("select", onSelect);
       scene.remove(controller);
-    } catch (_) {
-      // ignore
-    }
+      } catch {
+    // ignore
+  }
 
     // Dispose scene objects/materials/geometries to free GPU memory.
     try {
       if (scene && typeof scene.traverse === "function") {
         scene.traverse(disposeObject3D);
       }
-    } catch (_) {
-      // ignore
-    }
+      } catch {
+    // ignore
+  }
   };
 };
 

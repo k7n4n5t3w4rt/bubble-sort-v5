@@ -12,7 +12,7 @@ const AppContext = createContext([{}, () => {}]);
 const reducer = (state, action) =>
   // https://www.pika.dev/npm/@vve/immer
   produce(state, (draft) => {
-    let count ;
+    let count;
     if (action.type === "add") {
       count = state.count || action.payload;
       count++;
@@ -28,8 +28,7 @@ const reducer = (state, action) =>
     }
   });
 
-
-const AppProvider  = (props ) => {
+const AppProvider = (props) => {
   const [state, dispatch] = useReducer(reducer, {});
 
   // Browser only
@@ -39,10 +38,7 @@ const AppProvider  = (props ) => {
       //
       // Load data from stateStorage
       // https://developer.mozilla.org/en-US/docs/Web/API/Storage
-      let sessionStateString  = stateStorage.getItem(
-        "state",
-        state.rememberme,
-      );
+      let sessionStateString = stateStorage.getItem("state", state.rememberme);
       if (
         JSON.stringify(state) === JSON.stringify({}) &&
         (typeof sessionStateString === "undefined" ||
@@ -64,7 +60,7 @@ const AppProvider  = (props ) => {
         // not be JSON.
         try {
           dispatch({ type: "reset", payload: JSON.parse(sessionStateString) });
-        } catch (e) {
+        } catch {
           stateStorage.clear(state.rememberme);
         }
       }
@@ -83,4 +79,4 @@ const AppProvider  = (props ) => {
   `;
 };
 
-export { AppContext, AppProvider };
+export { AppProvider };

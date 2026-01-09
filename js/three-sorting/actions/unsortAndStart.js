@@ -26,22 +26,13 @@ const unsortAndStart = (cubeState) => {
     minMaxMs: cubeState.diffuseMinMaxMs,
     swapsPerTick: cubeState.diffuseSwapsPerTick,
     neighborRadius: cubeState.diffuseNeighborRadius,
-    onComplete: ({ ratio, reason, elapsedMs, maxMs }) => {
-      if (reason === "timeout") {
-        const cubeCount = Array.isArray(cubeState.pixelGrid)
-          ? cubeState.pixelGrid.length
-          : 0;
 
-        // const logFn = /** @type {any} */ (cubeState).logFn;
-        // if (typeof logFn === "function") {
-        //   logFn("[unsort] diffuse timeout", {
-        //     cubeCount,
-        //     inversionRatio: ratio,
-        //     elapsedMs,
-        //     maxMs,
-        //   });
-        // }
-      }
+    onComplete: ({
+      ratio,
+      reason: _reason,
+      elapsedMs: _elapsedMs,
+      maxMs: _maxMs,
+    }) => {
       startQuick(cubeState, { inversionRatio: ratio });
     },
   });

@@ -2,7 +2,6 @@
 // HELPERS
 // ------------------------------------------------------------
 import animateSwap from "./animateSwap.js";
-import applySwap from "./applySwap.js";
 
 /**
  * Swap two indices immediately in the pixelGrid and clear moving.

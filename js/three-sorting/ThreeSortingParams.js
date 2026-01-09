@@ -4,21 +4,14 @@
 // --------------------------------------------------
 // PREACT
 // --------------------------------------------------
-import {
-  useEffect,
-  useState,
-  useReducer,
-} from "preact/hooks";
+
+import { useEffect } from "preact/hooks";
 import { html } from "htm/preact";
 // --------------------------------------------------
 // HELPERS
 // --------------------------------------------------
 import seedString from "../simple_css_seed.js";
-import {
-  rawStyles,
-  createStyles,
-  setSeed,
-} from "simplestyle-js";
+import { rawStyles, createStyles, setSeed } from "simplestyle-js";
 
 setSeed(seedString("threebubblesortparams"));
 
@@ -58,7 +51,6 @@ rawStyles({
   },
 });
 
-
 export default (props) => {
   // Set some defaults for missing props
   const cols = props.cols;
@@ -75,19 +67,14 @@ export default (props) => {
   const unsortPauseMs = props.unsortPauseMs ?? 10_000;
   const dispatch = props.dispatch;
 
-  useEffect(() => { });
+  useEffect(() => {});
 
-  const changeParam = (
-    dispatch,
-    param,
-  ) => (
-    e,
-  ) => {
-      dispatch({
-        type: "CHANGE_PARAM",
-        payload: { param, value: e.target.value },
-      });
-    };
+  const changeParam = (dispatch, param) => (e) => {
+    dispatch({
+      type: "CHANGE_PARAM",
+      payload: { param, value: e.target.value },
+    });
+  };
 
   return html`
     <div id="params-container" className="${styles.paramsContainer}">
@@ -174,7 +161,10 @@ export default (props) => {
         </div>
         <div>
           <label for="diffuseMinMaxMs">Unsort min timeout (ms):</label>
-          <output id="diffuseMinMaxMsOutput" name="diffuseMinMaxMsOutput" for="diffuseMinMaxMs"
+          <output
+            id="diffuseMinMaxMsOutput"
+            name="diffuseMinMaxMsOutput"
+            for="diffuseMinMaxMs"
             >${diffuseMinMaxMs.toString()}</output
           >
           <input
@@ -189,7 +179,9 @@ export default (props) => {
           />
         </div>
         <div>
-          <label for="diffuseSwapsPerTick">Unsort swaps-per-tick (0 = auto):</label>
+          <label for="diffuseSwapsPerTick"
+            >Unsort swaps-per-tick (0 = auto):</label
+          >
           <output
             id="diffuseSwapsPerTickOutput"
             name="diffuseSwapsPerTickOutput"
@@ -208,7 +200,9 @@ export default (props) => {
           />
         </div>
         <div>
-          <label for="diffuseNeighborRadius">Unsort neighbor radius (1 = adjacent):</label>
+          <label for="diffuseNeighborRadius"
+            >Unsort neighbor radius (1 = adjacent):</label
+          >
           <output
             id="diffuseNeighborRadiusOutput"
             name="diffuseNeighborRadiusOutput"
@@ -228,7 +222,10 @@ export default (props) => {
         </div>
         <div>
           <label for="unsortPauseMs">Pause before unsort (ms):</label>
-          <output id="unsortPauseMsOutput" name="unsortPauseMsOutput" for="unsortPauseMs"
+          <output
+            id="unsortPauseMsOutput"
+            name="unsortPauseMsOutput"
+            for="unsortPauseMs"
             >${unsortPauseMs.toString()}</output
           >
           <input

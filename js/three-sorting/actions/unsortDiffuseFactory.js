@@ -149,7 +149,7 @@ export const unsortDiffuseFactory = (
     if (typeof clearInterval === "function") {
       try {
         clearUnsortDiffuse(cubes, clearInterval);
-      } catch (_) {
+      } catch {
         // ignore
       }
     } else {
@@ -199,7 +199,7 @@ export const unsortDiffuseFactory = (
 
       try {
         clearUnsortDiffuse(cubes, clearInterval);
-      } catch (_) {
+      } catch {
         // ignore
       }
       cubes.diffusing = false;

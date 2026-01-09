@@ -6,14 +6,13 @@ import * as THREE from "three";
 // HELPERS
 // --------------------------------------------------
 
-export default (
-  {
-    stats,
-    scene,
-    camera,
-    renderer,
-  } ,
-)  => {
+export default ({
+  scene,
+
+  stats: _stats,
+  camera: _camera,
+  renderer: _renderer,
+}) => {
   // const { stats, scene, camera, renderer, reticleStuff, cubes } = sceneData;
 
   const reticleStuff = {};

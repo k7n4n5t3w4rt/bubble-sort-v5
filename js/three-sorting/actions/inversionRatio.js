@@ -22,7 +22,7 @@ export const inversionRatioFromValues = (values, scratch) => {
     scratch && scratch.bit
       ? scratch.bit
       : // default: allocate if caller didn't provide scratch storage
-      new Uint32Array(size + 1);
+        new Uint32Array(size + 1);
   // Reset frequencies
   if (typeof bit.fill === "function") bit.fill(0);
   else {
@@ -49,7 +49,7 @@ export const inversionRatioFromValues = (values, scratch) => {
     const v = Number.isFinite(raw) ? Math.max(0, Math.min(255, raw)) : 0;
     const idx = (v | 0) + 1;
     const leq = sum(idx);
-    inversions += (seen - leq);
+    inversions += seen - leq;
     add(idx, 1);
     seen += 1;
   }
@@ -57,6 +57,3 @@ export const inversionRatioFromValues = (values, scratch) => {
   const denom = (n * (n - 1)) / 2;
   return denom > 0 ? inversions / denom : 0;
 };
-
-export default inversionRatioFromValues;
-

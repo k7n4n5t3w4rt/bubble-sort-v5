@@ -1,3 +1,4 @@
+/* eslint-disable import/no-unused-modules */
 /**
  * Swap two indices immediately in the pixelGrid and clear moving.
  * @param {import("./types.js").CubeState} cubeState
@@ -12,4 +13,3 @@ const swapCubes = (cubeState, a, b) => {
 };
 
 export default swapCubes;
-

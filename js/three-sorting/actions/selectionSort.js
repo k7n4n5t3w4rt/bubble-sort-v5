@@ -9,38 +9,7 @@
 import scheduleUnsort from "./scheduleUnsortFactory.js";
 import unsortAndStart from "./unsortAndStart.js";
 import animateSwap from "./animateSwap.js";
-
-const nowMs = () => {
-  // eslint-disable-next-line no-undef
-  if (
-    typeof performance !== "undefined" &&
-    typeof performance.now === "function"
-  ) {
-    return performance.now();
-  }
-  return Date.now();
-};
-
-const startSelection = (cubeState, meta = {}) => {
-  cubeState.active = true;
-  cubeState.moving = false;
-  cubeState.currentIndex = 0;
-  cubeState.sortStartMs = nowMs();
-  cubeState.sortEndMs = undefined;
-  cubeState.sortRunId = (cubeState.sortRunId || 0) + 1;
-
-  {
-    const cubeCount = Array.isArray(cubeState.pixelGrid)
-      ? cubeState.pixelGrid.length
-      : 0;
-
-    console.log(`[sort] #${cubeState.sortRunId} start (selection)`, {
-      startMs: cubeState.sortStartMs,
-      cubeCount,
-      ...meta,
-    });
-  }
-};
+import nowMs from "./nowMs.js";
 
 /**
  * @param {CubeState} cubeState
@@ -50,18 +19,6 @@ const startSelection = (cubeState, meta = {}) => {
  * @returns {CubeState}
  */
 const move = (cubeState, speed, scaleZ, anime) => {
-  // const swapCubes = animateSwapFactory();
-  // NOTE:
-  // This might not be very clear so:
-  //
-  // cubes is an an array of columns of cubes.
-  // Each cube object is a REFERENCE to a THREE.js Mesh object that
-  // was attached to the THREE.js scene in:
-  //
-  //		/js/three-sorting/actions/pixelGrid.js (Line 34)
-  //
-  let movingCube1 /*: boolean */ = true;
-  let movingCube2 /*: boolean */ = true;
   if (cubeState.moving === false) {
     // End condition: once we’ve placed the last item, stop and schedule an unsort for the next run.
     // Ensure currentIndex is always a valid number before using it.

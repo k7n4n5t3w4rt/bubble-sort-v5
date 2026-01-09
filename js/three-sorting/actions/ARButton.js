@@ -31,7 +31,7 @@ const createButton = (
         if (typeof onSessionStartedHook === "function") {
           try {
             await onSessionStartedHook(session);
-          } catch (e) {
+          } catch {
             // Ignore hook errors so AR start still works.
           }
         }
