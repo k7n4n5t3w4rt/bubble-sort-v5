@@ -89,6 +89,8 @@ export default (props) => {
             onChange=${changeParam(dispatch, "algorithm")}
           >
             <option value="bubble">Bubble Sort</option>
+            <!-- Added: Gnome Sort option to enable UI selection -->
+            <option value="gnome">Gnome Sort</option>
             <!-- Added: Cocktail Shaker Sort option to enable UI selection -->
             <option value="cocktail">Cocktail Shaker Sort</option>
             <!-- Added: Insertion Sort option to enable UI selection -->

@@ -1,3 +1,4 @@
+// @flow
 // --------------------------------------------------
 // THREE.js
 // --------------------------------------------------
@@ -13,6 +14,7 @@ import heapSort from "./heapSort.js"; // Added: heap sort algorithm
 import cycleSort from "./cycleSort.js"; // Added: cycle sort algorithm
 import combSort from "./combSort.js"; // Added: comb sort algorithm
 import cocktailSort from "./cocktailSort.js"; // Added: cocktail shaker sort algorithm
+import gnomeSort from "./gnomeSort.js"; // Added: gnome sort algorithm
 import initializeHitTestSource from "./initializeHitTestSource.js";
 import anime from "animejs/lib/anime.es.js";
 
@@ -71,7 +73,7 @@ export default (
     }
 
     if (cubes && cubes.pixelGrid !== undefined && cubes.active === true) {
-      // Route to the selected algorithm, including new "insertion" option.
+      // Route to the selected algorithm, including new "gnome" option.
       const sorter =
         algorithm === "selection"
           ? selectionSort
@@ -89,6 +91,8 @@ export default (
           ? cycleSort
           : algorithm === "comb"
           ? combSort
+          : algorithm === "gnome"
+          ? gnomeSort
           : bubbleSort;
       sorter(cubes, speed, scaleZ, anime);
     }
