@@ -1,4 +1,3 @@
-// @flow
 // --------------------------------------------------
 // TYPES
 // --------------------------------------------------
@@ -21,43 +20,50 @@ import scheduleRepeat from "./scheduleRepeat.js";
  * @param {AnimeRunner} anime
  * @returns {Promise<CubeState>}
  */
-const shellSort = async (cubeState, speed, scaleZ, anime) => {
-  // Pause the render loop for the duration of sorting.
-  if (cubeState) cubeState.active = false;
-  const pixelGrid = cubeState.pixelGrid;
+/**
+ * Factory for shellSort with injected scheduler.
+ *
+ * @param {(state: CubeState) => void} scheduler
+ * @returns {(cubeState: CubeState, speed: number, scaleZ: number, anime: AnimeRunner) => Promise<CubeState>}
+ */
+export const shellSortFactory =
+  (scheduler) => async (cubeState, speed, scaleZ, anime) => {
+    // Pause the render loop for the duration of sorting.
+    if (cubeState) cubeState.active = false;
+    const pixelGrid = cubeState.pixelGrid;
 
-  /**
-   * Swap two adjacent elements in pixelGrid using animated swap.
-   * Await the animation to keep operations in order.
-   * @param {number} i
-   * @param {number} j
-   */
-  const swap = async (i, j) => {
-    if (i === j) return;
-    await swapCubes(cubeState, i, j, scaleZ, speed, anime);
-  };
+    /**
+     * Swap two adjacent elements in pixelGrid using animated swap.
+     * Await the animation to keep operations in order.
+     * @param {number} i
+     * @param {number} j
+     */
+    const swap = async (i, j) => {
+      if (i === j) return;
+      await swapCubes(cubeState, i, j, scaleZ, speed, anime);
+    };
 
-  const n = pixelGrid.length;
-  // Standard Shell Sort gap sequence: n/2, ..., 1
-  for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
-    for (let i = gap; i < n; i++) {
-      // Perform gapped insertion: compare j-gap and j
-      let j = i;
-      while (j - gap >= 0 && pixelGrid[j - gap].value > pixelGrid[j].value) {
-        // Move the element at index j left by `gap` positions
-        // using adjacent swaps only.
-        for (let k = j; k > j - gap; k--) {
-          await swap(k - 1, k);
+    const n = pixelGrid.length;
+    // Standard Shell Sort gap sequence: n/2, ..., 1
+    for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+      for (let i = gap; i < n; i++) {
+        // Perform gapped insertion: compare j-gap and j
+        let j = i;
+        while (j - gap >= 0 && pixelGrid[j - gap].value > pixelGrid[j].value) {
+          // Move the element at index j left by `gap` positions
+          // using adjacent swaps only.
+          for (let k = j; k > j - gap; k--) {
+            await swap(k - 1, k);
+          }
+          j -= gap;
         }
-        j -= gap;
       }
     }
-  }
 
-  // Schedule a repeat run (unsort then sort again) to maintain visual behavior.
-  scheduleRepeat(cubeState);
+    // Schedule a repeat run (unsort then sort again) to maintain visual behavior.
+    scheduler(cubeState);
 
-  return cubeState;
-};
+    return cubeState;
+  };
 
-export default shellSort;
+export default shellSortFactory(scheduleRepeat);

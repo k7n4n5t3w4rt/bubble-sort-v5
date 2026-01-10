@@ -1,4 +1,3 @@
-// @flow
 // --------------------------------------------------
 // TYPES
 // --------------------------------------------------
@@ -78,27 +77,34 @@ const heapify = async (cubeState, heapSize, i, scaleZ, speed, anime) => {
  * @param {AnimeRunner} anime
  * @returns {Promise<CubeState>}
  */
-const heapSort = async (cubeState, speed, scaleZ, anime) => {
-  // Pause the render loop while sorting.
-  if (cubeState) cubeState.active = false;
-  const n = cubeState.pixelGrid.length;
+/**
+ * Factory for heapSort with injected scheduler.
+ *
+ * @param {(state: CubeState) => void} scheduler
+ * @returns {(cubeState: CubeState, speed: number, scaleZ: number, anime: AnimeRunner) => Promise<CubeState>}
+ */
+export const heapSortFactory =
+  (scheduler) => async (cubeState, speed, scaleZ, anime) => {
+    // Pause the render loop while sorting.
+    if (cubeState) cubeState.active = false;
+    const n = cubeState.pixelGrid.length;
 
-  // Build max-heap.
-  for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
-    await heapify(cubeState, n, i, scaleZ, speed, anime);
-  }
+    // Build max-heap.
+    for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+      await heapify(cubeState, n, i, scaleZ, speed, anime);
+    }
 
-  // Extract elements from heap one by one.
-  for (let end = n - 1; end > 0; end--) {
-    // Move current root (max) to the end via adjacent transposition.
-    await swapViaAdjacent(cubeState, 0, end, scaleZ, speed, anime);
-    // Heapify reduced heap.
-    await heapify(cubeState, end, 0, scaleZ, speed, anime);
-  }
+    // Extract elements from heap one by one.
+    for (let end = n - 1; end > 0; end--) {
+      // Move current root (max) to the end via adjacent transposition.
+      await swapViaAdjacent(cubeState, 0, end, scaleZ, speed, anime);
+      // Heapify reduced heap.
+      await heapify(cubeState, end, 0, scaleZ, speed, anime);
+    }
 
-  // Schedule next cycle.
-  scheduleRepeat(cubeState);
-  return cubeState;
-};
+    // Schedule next cycle.
+    scheduler(cubeState);
+    return cubeState;
+  };
 
-export default heapSort;
+export default heapSortFactory(scheduleRepeat);
