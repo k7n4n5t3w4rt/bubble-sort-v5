@@ -30,11 +30,25 @@ const startButtonSetup = async (
   // --------------------------------------------------
   // AR button (only if supported)
   // --------------------------------------------------
+  /**
+   * Probe WebXR AR support via `navigator.xr.isSessionSupported('immersive-ar')`.
+   * If supported, we render an ARButton that starts an AR session; otherwise,
+   * we fall back to the plain START button that launches the normal 3D scene.
+   * Using `await` ensures we don't present the wrong button before the promise resolves.
+   *
+   * Note: This mirrors the support logic used inside ARButton, but we gate which
+   * control to render at the top level to preserve the previous UX.
+   */
   let arSupported = false;
-  // $FlowFixMe
-  if (navigator.xr && navigator.xr.isSessionSupported) {
+  // $FlowFixMe - navigator.xr is not universally typed
+  if (
+    navigator &&
+    navigator.xr &&
+    typeof navigator.xr.isSessionSupported === "function"
+  ) {
     try {
-      // $FlowFixMe
+      // $FlowFixMe - WebXR types
+      arSupported = await navigator.xr.isSessionSupported("immersive-ar");
     } catch {
       arSupported = false;
     }
