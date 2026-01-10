@@ -9,7 +9,8 @@ import { testPromise, should } from "../server/testy.js";
 // ------------------------------------------------------------------
 // IMPORT: FUNCTION UNDER TEST
 // ------------------------------------------------------------------
-import cycleSort from "../js/three-sorting/actions/cycleSort.js";
+// Use factory to inject a noop scheduler for tests
+import { cycleSortFactory } from "../js/three-sorting/actions/cycleSort.js";
 
 /**
  * Minimal Cube factory satisfying typedefs used by the sorter.
@@ -55,6 +56,11 @@ testPromise(
       }
       return { finished: Promise.resolve() };
     };
+
+    // Avoid timers by injecting a stub scheduleRepeat in tests
+    /** @type {(state: import("../js/three-sorting/actions/types.js").CubeState) => void} */
+    const noopScheduleRepeat = () => {};
+    const cycleSort = cycleSortFactory(noopScheduleRepeat);
 
     const result = await cycleSort(cubesState, 1, 1, fakeAnime);
 

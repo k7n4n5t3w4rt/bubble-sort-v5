@@ -7,9 +7,9 @@
 // ------------------------------------------------------------------
 import { testPromise, should } from "../server/testy.js";
 // ------------------------------------------------------------------
-// IMPORT: FUNCTION UNDER TEST
+// IMPORT: FUNCTION UNDER TEST (factory)
 // ------------------------------------------------------------------
-import bubbleSort from "../js/three-sorting/actions/bubbleSort.js";
+import { bubbleSortFactory } from "../js/three-sorting/actions/bubbleSort.js";
 
 /**
  * @param {number} v
@@ -54,6 +54,10 @@ testPromise(
       return { finished: Promise.resolve() };
     };
 
+    // Use factory to inject a stub scheduleRepeat so tests don't start timers
+    /** @type {(state: import("../js/three-sorting/actions/types.js").CubeState) => void} */
+    const noopScheduleRepeat = () => {};
+    const bubbleSort = bubbleSortFactory(noopScheduleRepeat);
     const result = await bubbleSort(cubesState, 1, 1, fakeAnime);
 
     // Sorted ascending

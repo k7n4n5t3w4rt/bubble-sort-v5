@@ -9,7 +9,8 @@ import { testPromise, should } from "../server/testy.js";
 // ------------------------------------------------------------------
 // IMPORT: FUNCTION UNDER TEST
 // ------------------------------------------------------------------
-import cycleSort from "../js/three-sorting/actions/cycleSort.js";
+// Use factory to inject a noop scheduler for tests
+import { cycleSortFactory } from "../js/three-sorting/actions/cycleSort.js";
 
 /**
  * Create a minimal `Cube` compatible with the visualizer typedefs.
@@ -59,6 +60,11 @@ testPromise(
     };
 
     // Execute the algorithm under test.
+    // Prevent timers: inject a stub scheduleRepeat
+    /** @type {(state: import("../js/three-sorting/actions/types.js").CubeState) => void} */
+    const noopScheduleRepeat = () => {};
+    const cycleSort = cycleSortFactory(noopScheduleRepeat);
+
     const result = await cycleSort(cubesState, 1, 1, fakeAnime);
 
     // Verify values are sorted ascending, in-place.
