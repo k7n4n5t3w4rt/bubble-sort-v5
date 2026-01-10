@@ -1,3 +1,8 @@
+// @flow
+// Debug logging is added around each test execution and is gated by the
+// environment variable TESTY_DEBUG. Logs are emitted to stderr so they do not
+// interfere with TAP output consumed by faucet. Functionality remains
+// identical when TESTY_DEBUG is not set to "1".
 import glob from "glob";
 import { exec } from "child_process";
 
@@ -34,12 +39,35 @@ const execFactory = async (e, testies) => {
   // Sort the test files to ensure a consistent execution order.
   testies.sort();
 
+  // Determine whether to emit debug logs.
+  const isDebug /*: boolean */ = process.env.TESTY_DEBUG === "1";
+
   let faucetMessages = [];
   for (const testy of testies) {
+    // Start debug: log the test file and timestamp. Emit to stderr to avoid
+    // contaminating stdout TAP output.
+    if (isDebug) {
+      // Include ISO timestamp for easier correlation.
+      // Flow type hint for clarity: `testy` is a string path.
+      // eslint-disable-next-line no-console
+      console.error(
+        `[testy] RUN start: ${testy} at ${new Date().toISOString()}`,
+      );
+    }
+
+    const startNs /*: bigint */ = process.hrtime.bigint();
     const execPromise = new Promise((resolve) => {
       exec(`node ${testy}`, processExecMessages(resolve));
     });
     const messages = await execPromise;
+    const endNs /*: bigint */ = process.hrtime.bigint();
+    const elapsedMs /*: number */ = Number(endNs - startNs) / 1e6;
+
+    // End debug: log duration for the test file.
+    if (isDebug) {
+      // eslint-disable-next-line no-console
+      console.error(`[testy] RUN end: ${testy} in ${elapsedMs.toFixed(1)} ms`);
+    }
     faucetMessages = [...faucetMessages, ...messages];
   }
 

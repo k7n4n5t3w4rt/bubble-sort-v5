@@ -14,7 +14,7 @@ const scheduleRepeat = (cubeState) => {
   const delayMs =
     cubeState && typeof cubeState.unsortPauseMs === "number"
       ? cubeState.unsortPauseMs
-      : 10_000;
+      : 0;
   scheduleUnsort(cubeState, delayMs, (/** @type {CubeState} */ cs) =>
     unsortAndStart(cs),
   );
