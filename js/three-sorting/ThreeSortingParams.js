@@ -93,6 +93,8 @@ export default (props) => {
             <option value="insertion">Insertion Sort</option>
             <!-- Added: Shell Sort option to enable UI selection -->
             <option value="shell">Shell Sort</option>
+            <!-- Added: Heap Sort option to enable UI selection -->
+            <option value="heap">Heap Sort</option>
             <option value="selection">Selection Sort</option>
             <option value="quick">Quick Sort</option>
           </select>
