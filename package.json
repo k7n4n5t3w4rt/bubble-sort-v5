@@ -1,7 +1,7 @@
 {
   "name": "flow-attractor",
   "description": "Visualising flow of work.",
-  "version": "0.28.29.1",
+  "version": "0.29.0.0",
   "author": "Kynan Stewart Hughes",
   "bugs": {
     "url": "https://github.com/k7n4n5t3w4rt/workflow/issues"
@@ -51,7 +51,7 @@
     "prettier:write": "prettier --write \"js/**/*.{js,jsx}\"",
     "lint": "eslint js --ext .js --max-warnings 0",
     "start": "npm run dev",
-    "test": "npm run lint run testy | faucet && npm run cypress:run",
+    "test": "npm run lint && npm run testy | faucet && npm run cypress:run",
     "testy": "export RUN_CONTEXT='testy'; node --no-warnings server/testyrunner.js",
     "typecheck": "node ./node_modules/typescript/bin/tsc -p tsconfig.json"
   },

@@ -1,3 +1,4 @@
+// @flow
 // --------------------------------------------------
 // THREE.js
 // --------------------------------------------------
@@ -88,6 +89,10 @@ export default (props) => {
             onChange=${changeParam(dispatch, "algorithm")}
           >
             <option value="bubble">Bubble Sort</option>
+            <!-- Added: Insertion Sort option to enable UI selection -->
+            <option value="insertion">Insertion Sort</option>
+            <!-- Added: Shell Sort option to enable UI selection -->
+            <option value="shell">Shell Sort</option>
             <option value="selection">Selection Sort</option>
             <option value="quick">Quick Sort</option>
           </select>

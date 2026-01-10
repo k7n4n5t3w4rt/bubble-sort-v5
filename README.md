@@ -3,21 +3,26 @@
 An artwork that turns sorting algorithms into site-specific augmented-reality sculptures. You tune parameters in normal 3D mode until the motion and form feel right, then drop the algorithm into the world via AR, record the run in public space, and fold the captures into larger composite works (e.g., Instagram series).
 
 ## What it does
-- Visualises Bubble Sort (more algorithms coming) as a grid of cubes that unsorts then sorts.
+- Visualises Bubble Sort, Insertion Sort, Selection Sort, Quick Sort, and Shell Sort as a grid of cubes that unsorts then sorts.
 - Two modes: normal 3D for rapid iteration; AR for in-situ placement and capture.
 - Parameter-driven performances: grid size, animation speed, physical scale, and unsort/diffusion behaviour to sculpt the motion before recording.
 
 ## How the app is wired
 - Preact shell: `js/main.js` mounts `js/App.js`, which wraps routes in `AppProvider` (context/state).
 - State & params: `js/AppContext.js` + `js/appReducer.js` manage param changes; `Sort` owns the algorithm view and synchronises params to the URL for reproducible runs.
-- Parameter UI: `js/three-sorting/ThreeSortingParams.js` renders sliders for grid dimensions, speed, physical scale (cm), diffusion/unsort settings, plus an algorithm selector (Bubble/Selection/Quick); dispatches `CHANGE_PARAM` into the reducer.
+- Parameter UI: `js/three-sorting/ThreeSortingParams.js` renders sliders for grid dimensions, speed, physical scale (cm), diffusion/unsort settings, plus an algorithm selector (Bubble/Insertion/Selection/Quick/Shell); dispatches `CHANGE_PARAM` into the reducer.
 - Orchestration: `js/three-sorting/actions/init.js` builds a shared WebGL renderer, then hands off to either 3D or AR entrypoints via `startButtonSetup` and a generated `locationString` (querystring preserving params).
 
 ### Three.js pipeline (shared pieces)
 - Renderer: `rendererSetup.js` reuses a singleton `THREE.WebGLRenderer` with WebXR enabled to avoid duplicate canvases and keep AR session state consistent.
 - Scene setup: both modes create a `Scene`, `PerspectiveCamera`, lights, stats overlay, and attach the renderer canvas into `#ar-container`.
 - Grid data: `pixelGrid.js` (3D) and `onSelectBuildPixelGrid.js` (AR) build a cube grid whose dimensions and spacing come from current params.
-- Animation loop: `animate.js` drives per-frame updates; sorter is chosen per state (Bubble via `bubbleSort.js`, Selection via `selectionSort.js`, Quick via `quickSort.js`) when `cubes.active` is true; stats overlay updates every frame.
+- Animation loop: `animate.js` drives per-frame updates; sorter is chosen per state (Bubble via `bubbleSort.js`, Insertion via `insertionSort.js`, Selection via `selectionSort.js`, Quick via `quickSort.js`, Shell via `shellSort.js`) when `cubes.active` is true; stats overlay updates every frame.
+
+### Shell Sort specifics
+- In-place visual: `js/three-sorting/actions/shellSort.js` implements gap-based insertion, but all movements are realized using adjacent animated swaps via `swapCubes(...)` to maintain consistent visual language.
+- Lifecycle: sets `cubeState.active = false` before sorting and calls `scheduleRepeat(cubeState)` after completion to continue the unsort→sort performance loop.
+- Tests: unit coverage in `testies/shell_sort.testy.js`; Cypress e2e in `cypress/e2e/shell_select.cy.js` ensures the new option initializes and renders correctly.
 - Unsort → sort cycle: `scheduleUnsortFactory.js` (default export `scheduleUnsort`) triggers `unsortDiffuse.js` to introduce inversion noise (controlled by target ratio, swaps per tick, neighbour radius, min/max duration), then hands control back to the sorter.
 - Cleanup: both modes install `renderer.__bubbleSortCleanup` to stop animation loops, clear timers/intervals, remove listeners, and dispose geometries/materials to free GPU memory. WebGL context loss/restoration is logged to help diagnose hot-device failures.
 

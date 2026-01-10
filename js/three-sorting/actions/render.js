@@ -1,3 +1,4 @@
+// @flow
 // --------------------------------------------------
 // THREE.js
 // --------------------------------------------------
@@ -7,6 +8,8 @@
 import bubbleSort from "./bubbleSort.js";
 import selectionSort from "./selectionSort.js";
 import quickSort from "./quickSort.js";
+import insertionSort from "./insertionSort.js"; // Added: insertion sort algorithm
+import shellSort from "./shellSort.js"; // Added: shell sort algorithm
 import initializeHitTestSource from "./initializeHitTestSource.js";
 import anime from "animejs/lib/anime.es.js";
 
@@ -65,11 +68,16 @@ export default (
     }
 
     if (cubes && cubes.pixelGrid !== undefined && cubes.active === true) {
+      // Route to the selected algorithm, including new "insertion" option.
       const sorter =
         algorithm === "selection"
           ? selectionSort
           : algorithm === "quick"
           ? quickSort
+          : algorithm === "insertion"
+          ? insertionSort
+          : algorithm === "shell"
+          ? shellSort
           : bubbleSort;
       sorter(cubes, speed, scaleZ, anime);
     }
