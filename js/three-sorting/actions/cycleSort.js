@@ -51,62 +51,105 @@ const cycleSort = async (cubeState, speed, scaleZ, anime) => {
     await swapCubes(cubeState, i, j, scaleZ, speed, anime);
   };
 
-  // For each cycle start, place the item into its correct position.
-  for (let cycleStart = 0; cycleStart < n - 1; cycleStart++) {
-    // Compute the position where pixelGrid[cycleStart] belongs.
-    // Count items strictly less than it (stable placement).
-    let itemValue = pixelGrid[cycleStart].value;
-    let pos = cycleStart;
+  // --------------------------------------------------
+  // Stable target index helpers (prevents infinite loops with duplicates)
+  // --------------------------------------------------
+  /**
+   * Count items strictly less than `value`.
+   * @param {number} value
+   * @returns {number}
+   */
+  const countLess = (value) => {
+    let c = 0;
     for (let i = 0; i < n; i++) {
-      if (pixelGrid[i].value < itemValue) pos++;
+      if (pixelGrid[i].value < value) c++;
     }
+    return c;
+  };
 
-    // Skip duplicates to find the next free slot for this value.
-    while (pos < n && pixelGrid[pos].value === itemValue) pos++;
-
-    // If already in correct position, continue.
-    if (pos === cycleStart || pos >= n) continue;
-
-    // Move the current item into `pos` using adjacent swaps.
-    // This shifts the block between cycleStart..pos accordingly.
-    if (pos > cycleStart) {
-      for (let j = cycleStart; j < pos; j++) {
-        await swap(j, j + 1);
-      }
-    } else {
-      for (let j = cycleStart; j > pos; j--) {
-        await swap(j - 1, j);
-      }
+  /**
+   * Count items equal to `value` that appear before `atIndex`.
+   * @param {number} value
+   * @param {number} atIndex
+   * @returns {number}
+   */
+  const countEqualBefore = (value, atIndex) => {
+    let c = 0;
+    for (let i = 0; i < atIndex; i++) {
+      if (pixelGrid[i].value === value) c++;
     }
+    return c;
+  };
 
-    // Continue cycling: place whatever item is now at cycleStart.
-    // Repeat until the item at cycleStart is already correctly placed.
-    // This mirrors cycle sort's minimal-write cycles, adapted to swaps.
-    // Note: cycleStart remains fixed; each pass moves a new item out.
-    while (true) {
-      itemValue = pixelGrid[cycleStart].value;
-      pos = cycleStart;
+  /**
+   * Count items equal to `value` in the entire grid.
+   * @param {number} value
+   * @returns {number}
+   */
+  const countEqualTotal = (value) => {
+    let c = 0;
+    for (let i = 0; i < n; i++) {
+      if (pixelGrid[i].value === value) c++;
+    }
+    return c;
+  };
+
+  // Helper to compute stable target index for a given value at index.
+  const targetIndexForValue = (value, atIndex) =>
+    countLess(value) + countEqualBefore(value, atIndex);
+
+  // For each cycle start, bring the correct item into place using swaps.
+  for (let cycleStart = 0; cycleStart < n - 1; cycleStart++) {
+    if (
+      targetIndexForValue(pixelGrid[cycleStart].value, cycleStart) !==
+      cycleStart
+    ) {
+      // Determine which value must occupy `cycleStart` by stable ordering:
+      // For value `v`, its stable block is from `start = countLess(v)`
+      // to `end = start + countEqualTotal(v) - 1`. The value whose block
+      // contains `cycleStart` is the one to place.
+
+      let valueToPlace = null;
+      let placeStart = 0;
       for (let i = 0; i < n; i++) {
-        if (pixelGrid[i].value < itemValue) pos++;
-      }
-      while (pos < n && pixelGrid[pos].value === itemValue) pos++;
-      if (pos === cycleStart || pos >= n) break;
-
-      if (pos > cycleStart) {
-        for (let j = cycleStart; j < pos; j++) {
-          await swap(j, j + 1);
+        const v = pixelGrid[i].value;
+        const start = countLess(v);
+        const total = countEqualTotal(v);
+        const end = start + total - 1;
+        if (cycleStart >= start && cycleStart <= end) {
+          valueToPlace = v;
+          placeStart = start;
+          break;
         }
-      } else {
-        for (let j = cycleStart; j > pos; j--) {
-          await swap(j - 1, j);
+      }
+
+      if (valueToPlace != null) {
+        const ordinal = cycleStart - placeStart;
+        let k = -1;
+        for (let i = 0; i < n; i++) {
+          if (
+            pixelGrid[i].value === valueToPlace &&
+            countEqualBefore(valueToPlace, i) === ordinal
+          ) {
+            k = i;
+            break;
+          }
+        }
+
+        if (k > cycleStart) {
+          for (let j = k; j > cycleStart; j--) {
+            await swap(j - 1, j);
+          }
+        } else if (k >= 0 && k < cycleStart) {
+          for (let j = k; j < cycleStart; j++) {
+            await swap(j, j + 1);
+          }
         }
       }
     }
   }
 
-  // Schedule the next run (unsort then sort again) per app behavior.
   scheduleRepeat(cubeState);
-
   return cubeState;
 };
 
