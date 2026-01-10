@@ -96,6 +96,8 @@ export default (props) => {
             <option value="heap">Heap Sort</option>
             <!-- Added: Cycle Sort option to enable UI selection -->
             <option value="cycle">Cycle Sort</option>
+            <!-- Added: Comb Sort option to enable UI selection -->
+            <option value="comb">Comb Sort</option>
             <option value="selection">Selection Sort</option>
             <option value="quick">Quick Sort</option>
           </select>

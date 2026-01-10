@@ -11,6 +11,7 @@ import insertionSort from "./insertionSort.js"; // Added: insertion sort algorit
 import shellSort from "./shellSort.js"; // Added: shell sort algorithm
 import heapSort from "./heapSort.js"; // Added: heap sort algorithm
 import cycleSort from "./cycleSort.js"; // Added: cycle sort algorithm
+import combSort from "./combSort.js"; // Added: comb sort algorithm
 import initializeHitTestSource from "./initializeHitTestSource.js";
 import anime from "animejs/lib/anime.es.js";
 
@@ -83,6 +84,8 @@ export default (
           ? heapSort
           : algorithm === "cycle"
           ? cycleSort
+          : algorithm === "comb"
+          ? combSort
           : bubbleSort;
       sorter(cubes, speed, scaleZ, anime);
     }
