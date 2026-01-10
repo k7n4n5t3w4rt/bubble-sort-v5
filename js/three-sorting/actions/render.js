@@ -16,6 +16,7 @@ import combSort from "./combSort.js"; // Added: comb sort algorithm
 import cocktailSort from "./cocktailSort.js"; // Added: cocktail shaker sort algorithm
 import gnomeSort from "./gnomeSort.js"; // Added: gnome sort algorithm
 import oddEvenSort from "./oddEvenSort.js"; // Added: odd-even (brick) sort algorithm
+import bitonicSort from "./bitonicSort.js"; // Added: bitonic sort algorithm
 import initializeHitTestSource from "./initializeHitTestSource.js";
 import anime from "animejs/lib/anime.es.js";
 
@@ -96,6 +97,8 @@ export default (
           ? gnomeSort
           : algorithm === "oddeven"
           ? oddEvenSort
+          : algorithm === "bitonic"
+          ? bitonicSort
           : bubbleSort;
       sorter(cubes, speed, scaleZ, anime);
     }

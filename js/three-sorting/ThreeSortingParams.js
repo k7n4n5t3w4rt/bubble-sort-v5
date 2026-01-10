@@ -93,6 +93,8 @@ export default (props) => {
             <option value="gnome">Gnome Sort</option>
             <!-- Added: Odd-Even (Brick) Sort option to enable UI selection -->
             <option value="oddeven">Odd-Even Sort</option>
+            <!-- Added: Bitonic Sort option to enable UI selection -->
+            <option value="bitonic">Bitonic Sort</option>
             <!-- Added: Cocktail Shaker Sort option to enable UI selection -->
             <option value="cocktail">Cocktail Shaker Sort</option>
             <!-- Added: Insertion Sort option to enable UI selection -->
