@@ -12,13 +12,7 @@ When making changes to the codebase, please adhere to the following guidelines:
 8. If you're unsure about any aspect of my request, ask clarifying questions before proceeding.
 9. For complex changes, outline your approach first and wait for confirmation.
 10. ALWAYS increment the version number of the application when changing code. There's usually one in the package.json file and in the title of the index.html file if it's a web application.
-11. Use Flow type annotations and the comment syntax for an code you write or change, even if the original code doesn't have them. Every file needs  "@flow" in a comment at the top.For example:
+11. Use JSDoc type annotations and the comment syntax for an code you write or change, even if the original code doesn't have them.
 12. TDD is the preferred coding style. If I ask for a new function, or new functionality, or if you have a suggestion that involves writing a new function, ask me if we should start with the test first. If I respond with a negative, you're free to continue as planned. If I respond with an affirmative, switch focus to the implementation of the test.
 13. Note: Cypress (Electron) may fail to start if `ELECTRON_RUN_AS_NODE=1` is set in your environment. If so, run Cypress with it unset, e.g. `env -u ELECTRON_RUN_AS_NODE npm run cypress:run` (or `npm test`).
-
-    ```javascript
-    // @flow
-    function add(a /*: number */, b /*: number */) /*: number */ {
-      return a + b;
-    }
-    ```
+14. Always run `npm run lint` after making code changes to ensure code quality and consistency.
