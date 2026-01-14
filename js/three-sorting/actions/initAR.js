@@ -26,8 +26,6 @@ export const initAR = (renderer, params) => {
     scaleY,
     scaleZ,
     algorithm = "bubble",
-    diffuseTargetRatio,
-    diffuseMinMaxMs,
     diffuseSwapsPerTick,
     diffuseNeighborRadius,
     unsortPauseMs,
@@ -85,18 +83,8 @@ export const initAR = (renderer, params) => {
     currentIndex: 0,
   };
 
-  if (
-    diffuseTargetRatio != null &&
-    Number.isFinite(Number(diffuseTargetRatio))
-  ) {
-    cubes.diffuseTargetRatio = Math.max(
-      0,
-      Math.min(1, Number(diffuseTargetRatio)),
-    );
-  }
-  if (diffuseMinMaxMs != null && Number.isFinite(Number(diffuseMinMaxMs))) {
-    cubes.diffuseMinMaxMs = Math.max(0, Number(diffuseMinMaxMs));
-  }
+  // diffuseTargetRatio is hard-coded to 0.5 (used during unsort in onSelectBuildPixelGrid).
+  // diffuseMinMaxMs is hard-coded to 3000ms during unsort.
   if (
     diffuseSwapsPerTick != null &&
     Number.isFinite(Number(diffuseSwapsPerTick))

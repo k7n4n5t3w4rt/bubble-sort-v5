@@ -60,14 +60,10 @@ export default (
         cs.active = false;
 
         unsortDiffuse(cs, {
-          targetRatio:
-            cs && typeof cs.diffuseTargetRatio === "number"
-              ? cs.diffuseTargetRatio
-              : 0.5,
-          minMaxMs:
-            cs && typeof cs.diffuseMinMaxMs === "number"
-              ? cs.diffuseMinMaxMs
-              : undefined,
+          // Hard-coded inversion ratio target: set high to ensure full 3s
+          targetRatio: 1.0,
+          // Hard cap on unsort duration: 3000ms
+          maxMs: 3000,
           swapsPerTick:
             cs &&
             typeof cs.diffuseSwapsPerTick === "number" &&

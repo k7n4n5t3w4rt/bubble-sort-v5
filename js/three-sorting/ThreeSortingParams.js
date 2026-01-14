@@ -61,8 +61,7 @@ export default (props) => {
   const scaleY = props.scaleY;
   const scaleZ = props.scaleZ;
   const algorithm = props.algorithm || "bubble";
-  const diffuseTargetRatio = props.diffuseTargetRatio ?? 0.5;
-  const diffuseMinMaxMs = props.diffuseMinMaxMs ?? 5000;
+  // Note: Unsort target inversion ratio is hard-coded elsewhere (0.5)
   const diffuseSwapsPerTick = props.diffuseSwapsPerTick ?? 0;
   const diffuseNeighborRadius = props.diffuseNeighborRadius ?? 1;
   const unsortPauseMs = props.unsortPauseMs ?? 10_000;
@@ -159,44 +158,7 @@ export default (props) => {
             value="${speed.toString()}"
           />
         </div>
-        <div>
-          <label for="diffuseTargetRatio">Unsort target inversion ratio:</label>
-          <output
-            id="diffuseTargetRatioOutput"
-            name="diffuseTargetRatioOutput"
-            for="diffuseTargetRatio"
-            >${diffuseTargetRatio.toString()}</output
-          >
-          <input
-            type="range"
-            id="diffuseTargetRatio"
-            name="diffuseTargetRatio"
-            min="0"
-            max="1"
-            step="0.05"
-            onChange=${changeParam(dispatch, "diffuseTargetRatio")}
-            value="${diffuseTargetRatio.toString()}"
-          />
-        </div>
-        <div>
-          <label for="diffuseMinMaxMs">Unsort min timeout (ms):</label>
-          <output
-            id="diffuseMinMaxMsOutput"
-            name="diffuseMinMaxMsOutput"
-            for="diffuseMinMaxMs"
-            >${diffuseMinMaxMs.toString()}</output
-          >
-          <input
-            type="range"
-            id="diffuseMinMaxMs"
-            name="diffuseMinMaxMs"
-            min="0"
-            max="60000"
-            step="500"
-            onChange=${changeParam(dispatch, "diffuseMinMaxMs")}
-            value="${diffuseMinMaxMs.toString()}"
-          />
-        </div>
+        <!-- Removed: diffuseMinMaxMs label and input (hard-coded to 3000ms) -->
         <div>
           <label for="diffuseSwapsPerTick"
             >Unsort swaps-per-tick (0 = auto):</label

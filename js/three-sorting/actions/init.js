@@ -25,8 +25,6 @@ export default (
   };
   const {
     algorithm,
-    diffuseTargetRatio,
-    diffuseMinMaxMs,
     diffuseSwapsPerTick,
     diffuseNeighborRadius,
     unsortPauseMs,
@@ -37,8 +35,6 @@ export default (
     `&scalex=${scaleX}&scaley=${scaleY}&scalez=${scaleZ}` +
     `&cols=${cols}&rows=${rows}` +
     `&algorithm=${algorithm ?? ""}` +
-    `&diffuseTargetRatio=${diffuseTargetRatio ?? ""}` +
-    `&diffuseMinMaxMs=${diffuseMinMaxMs ?? ""}` +
     `&diffuseSwapsPerTick=${diffuseSwapsPerTick ?? ""}` +
     `&diffuseNeighborRadius=${diffuseNeighborRadius ?? ""}` +
     `&unsortPauseMs=${unsortPauseMs ?? ""}`;

@@ -44,14 +44,7 @@ export default (props) => {
     typeof props.algorithm === "string" && props.algorithm.length > 0
       ? props.algorithm
       : "bubble";
-  const diffuseTargetRatio = Math.min(
-    1,
-    Math.max(0, parseFloat(props.diffuseTargetRatio) || 0.5),
-  );
-  const diffuseMinMaxMs = Math.max(
-    0,
-    Math.floor(parseFloat(props.diffuseMinMaxMs)) || 5000,
-  );
+  // Note: unsort target inversion ratio is hard-coded downstream (0.5).
   const diffuseSwapsPerTick = Math.max(
     0,
     Math.floor(parseFloat(props.diffuseSwapsPerTick)) || 0,
@@ -73,8 +66,6 @@ export default (props) => {
     scaleY,
     scaleZ,
     algorithm,
-    diffuseTargetRatio,
-    diffuseMinMaxMs,
     diffuseSwapsPerTick,
     diffuseNeighborRadius,
     unsortPauseMs,
@@ -99,11 +90,6 @@ export default (props) => {
         url.searchParams.set("scalez", String(state.scaleZ));
         url.searchParams.set("algorithm", String(state.algorithm || "bubble"));
 
-        url.searchParams.set(
-          "diffuseTargetRatio",
-          String(state.diffuseTargetRatio),
-        );
-        url.searchParams.set("diffuseMinMaxMs", String(state.diffuseMinMaxMs));
         url.searchParams.set(
           "diffuseSwapsPerTick",
           String(state.diffuseSwapsPerTick),
@@ -133,8 +119,7 @@ export default (props) => {
       state.scaleZ,
       {
         algorithm: state.algorithm,
-        diffuseTargetRatio: state.diffuseTargetRatio,
-        diffuseMinMaxMs: state.diffuseMinMaxMs,
+        // Note: diffuseTargetRatio hard-coded in downstream actions
         diffuseSwapsPerTick: state.diffuseSwapsPerTick,
         diffuseNeighborRadius: state.diffuseNeighborRadius,
         unsortPauseMs: state.unsortPauseMs,
@@ -148,8 +133,6 @@ export default (props) => {
     state.scaleY,
     state.scaleZ,
     state.algorithm,
-    state.diffuseTargetRatio,
-    state.diffuseMinMaxMs,
     state.diffuseSwapsPerTick,
     state.diffuseNeighborRadius,
     state.unsortPauseMs,
@@ -168,8 +151,6 @@ export default (props) => {
         scaleY="${state.scaleY}"
         scaleZ="${state.scaleZ}"
         algorithm="${state.algorithm}"
-        diffuseTargetRatio="${state.diffuseTargetRatio}"
-        diffuseMinMaxMs="${state.diffuseMinMaxMs}"
         diffuseSwapsPerTick="${state.diffuseSwapsPerTick}"
         diffuseNeighborRadius="${state.diffuseNeighborRadius}"
         unsortPauseMs="${state.unsortPauseMs}"

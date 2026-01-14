@@ -38,8 +38,6 @@
  * @property {number} [sortStartMs]
  * @property {number} [sortEndMs]
  * @property {number} [unsortPauseMs]
- * @property {number} [diffuseTargetRatio]
- * @property {number} [diffuseMinMaxMs]
  * @property {number} [diffuseSwapsPerTick]
  * @property {number} [diffuseNeighborRadius]
  * @property {(ReturnType<typeof setTimeout>|null)} [unsortTimeoutId]

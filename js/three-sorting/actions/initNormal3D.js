@@ -36,8 +36,6 @@ export default (renderer, params) => {
     scaleY,
     scaleZ,
     algorithm = "bubble",
-    diffuseTargetRatio,
-    diffuseMinMaxMs,
     diffuseSwapsPerTick,
     diffuseNeighborRadius,
     unsortPauseMs,
@@ -165,18 +163,8 @@ export default (renderer, params) => {
   cubes.pixelGridGroup = pixelGridGroup;
   cubes.gridCols = cols;
   cubes.gridRows = rows;
-  if (
-    diffuseTargetRatio != null &&
-    Number.isFinite(Number(diffuseTargetRatio))
-  ) {
-    cubes.diffuseTargetRatio = Math.max(
-      0,
-      Math.min(1, Number(diffuseTargetRatio)),
-    );
-  }
-  if (diffuseMinMaxMs != null && Number.isFinite(Number(diffuseMinMaxMs))) {
-    cubes.diffuseMinMaxMs = Math.max(0, Number(diffuseMinMaxMs));
-  }
+  // diffuseTargetRatio is hard-coded to 0.5 (see unsortDiffuse invocation below).
+  // diffuseMinMaxMs is hard-coded to 3000ms during unsort.
   if (
     diffuseSwapsPerTick != null &&
     Number.isFinite(Number(diffuseSwapsPerTick))
@@ -210,14 +198,10 @@ export default (renderer, params) => {
     cs.active = false;
 
     unsortDiffuse(cs, {
-      targetRatio:
-        cs && typeof cs.diffuseTargetRatio === "number"
-          ? cs.diffuseTargetRatio
-          : 0.5,
-      minMaxMs:
-        cs && typeof cs.diffuseMinMaxMs === "number"
-          ? cs.diffuseMinMaxMs
-          : undefined,
+      // Hard-coded inversion ratio target: set high to ensure full 3s
+      targetRatio: 1.0,
+      // Hard cap on unsort duration: 3000ms
+      maxMs: 3000,
       swapsPerTick:
         cs &&
         typeof cs.diffuseSwapsPerTick === "number" &&

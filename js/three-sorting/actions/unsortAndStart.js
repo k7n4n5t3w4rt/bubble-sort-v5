@@ -22,8 +22,10 @@ const unsortAndStart = (cubeState) => {
   }
 
   unsortDiffuse(cubeState, {
-    targetRatio: cubeState.diffuseTargetRatio,
-    minMaxMs: cubeState.diffuseMinMaxMs,
+    // Hard-coded inversion ratio target: set high to ensure full 3s
+    targetRatio: 1.0,
+    // Hard cap on unsort duration: 3000ms
+    maxMs: 3000,
     swapsPerTick: cubeState.diffuseSwapsPerTick,
     neighborRadius: cubeState.diffuseNeighborRadius,
 
