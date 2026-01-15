@@ -10,9 +10,14 @@ import swapCubes from "./swapCubes.js";
 import scheduleRepeat from "./scheduleRepeat.js";
 
 /**
- * Shell Sort using animated adjacent swaps.
- * Implements classic gap-based insertion; each non-adjacent movement is
- * realized as a sequence of adjacent swaps to maintain visual consistency.
+ * Shell Sort using canonical gapped insertion realized as visual pairwise
+ * swaps.
+ *
+ * For each gap, runs a standard insertion sort where elements are compared
+ * by `cube.value`. Each logical "shift step" in the gapped insertion is
+ * implemented as a direct swap between indices `j - gap` and `j`, using the
+ * original swap animation so that cube A and cube B fly out in opposite
+ * directions before landing in each other's positions.
  *
  * @param {CubeState} cubeState
  * @param {number} speed
@@ -31,12 +36,14 @@ export const shellSortFactory =
     // Pause the render loop for the duration of sorting.
     if (cubeState) cubeState.active = false;
     const pixelGrid = cubeState.pixelGrid;
-
     /**
-     * Swap two adjacent elements in pixelGrid using animated swap.
-     * Await the animation to keep operations in order.
+     * Swap two elements in pixelGrid using the standard animated swap.
+     * Await the animation so each visual pairwise swap completes before
+     * continuing the current gapped insertion step.
+     *
      * @param {number} i
      * @param {number} j
+     * @returns {Promise<void>}
      */
     const swap = async (i, j) => {
       if (i === j) return;
@@ -47,14 +54,13 @@ export const shellSortFactory =
     // Standard Shell Sort gap sequence: n/2, ..., 1
     for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
       for (let i = gap; i < n; i++) {
-        // Perform gapped insertion: compare j-gap and j
+        // Perform gapped insertion by repeatedly swapping the element at j
+        // left by `gap` positions while it is smaller than its gapped
+        // predecessor. Each step is a visual pairwise swap using the
+        // original animation.
         let j = i;
-        while (j - gap >= 0 && pixelGrid[j - gap].value > pixelGrid[j].value) {
-          // Move the element at index j left by `gap` positions
-          // using adjacent swaps only.
-          for (let k = j; k > j - gap; k--) {
-            await swap(k - 1, k);
-          }
+        while (j >= gap && pixelGrid[j - gap].value > pixelGrid[j].value) {
+          await swap(j - gap, j);
           j -= gap;
         }
       }
