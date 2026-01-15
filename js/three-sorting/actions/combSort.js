@@ -10,12 +10,11 @@ import swapCubes from "./swapCubes.js";
 import scheduleRepeat from "./scheduleRepeat.js";
 
 /**
- * Comb Sort (animated via adjacent swaps):
+ * Comb Sort (canonical gapped swap version):
  * - Sorts `cubeState.pixelGrid` in ascending order, in-place.
  * - Uses a decreasing gap strategy (shrink factor ~1.3).
- * - To preserve visual semantics (adjacent animations only), when a pair
- *   at distance `gap` is out of order, we move the right element left into
- *   position via a series of adjacent swaps.
+ * - When a pair at distance `gap` is out of order, performs a single
+ *   swap of that gapped pair and continues scanning.
  *
  * @param {CubeState} cubeState
  * @param {number} speed
@@ -58,15 +57,13 @@ export const combSortFactory =
 
       swapped = false;
 
-      // Compare elements at i and i+gap. When out of order, shift the right
-      // element leftwards using adjacent swaps until it reaches position i.
+      // Compare elements at i and i+gap. When out of order, perform a
+      // single gapped swap (canonical comb sort behaviour).
       for (let i = 0; i + gap < n; i++) {
+        const grid = cubeState.pixelGrid || pixelGrid;
         const j = i + gap;
-        if (pixelGrid[i].value > pixelGrid[j].value) {
-          // Move element at j into position i via adjacent swaps
-          for (let k = j; k > i; k--) {
-            await swap(k - 1, k);
-          }
+        if (grid[i].value > grid[j].value) {
+          await swap(i, j);
           swapped = true;
         }
       }

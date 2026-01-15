@@ -10,6 +10,20 @@ import swapCubes from "./swapCubes.js";
 import scheduleRepeat from "./scheduleRepeat.js";
 
 /**
+ * Distance threshold below which we keep full adjacent transposition.
+ * Larger values favour the slower but highly local visual style; smaller
+ * values make more swaps use the faster direct-swap path.
+ */
+const LONG_SWAP_THRESHOLD = 8;
+
+/**
+ * Coarse-grained pacing knob for long swaps. For large distances, we
+ * scale the effective speed passed into `swapCubes` so that big heap
+ * extractions do not dominate total animation time.
+ */
+const SWAP_BATCH_SIZE = 16;
+
+/**
  * Perform an adjacent-only transposition to swap two indices i and j.
  * This decomposes a long-distance swap into a product of neighbor swaps:
  *  - for k = i..j-1: swap(k, k+1)
@@ -38,6 +52,39 @@ const swapViaAdjacent = async (cubeState, i, j, scaleZ, speed, anime) => {
 };
 
 /**
+ * Heap-aware swap with pacing control:
+ * - For short distances (|i - j| <= LONG_SWAP_THRESHOLD), keep the
+ *   existing adjacent-only transposition for maximum visual fidelity.
+ * - For long distances, perform a single logical swap via swapCubes,
+ *   scaling the speed using SWAP_BATCH_SIZE so total awaited work stays
+ *   O(1) per logical heap swap instead of O(|i - j|).
+ *
+ * @param {CubeState} cubeState
+ * @param {number} i
+ * @param {number} j
+ * @param {number} scaleZ
+ * @param {number} speed
+ * @param {AnimeRunner} anime
+ */
+const heapSwap = async (cubeState, i, j, scaleZ, speed, anime) => {
+  if (i === j) return;
+
+  const distance = Math.abs(i - j);
+
+  if (distance <= LONG_SWAP_THRESHOLD) {
+    // Preserve the adjacent-swap language for local moves.
+    await swapViaAdjacent(cubeState, i, j, scaleZ, speed, anime);
+    return;
+  }
+
+  // Long-distance: a single direct animated swap with an adjusted
+  // effective speed so that very long heap moves remain snappy.
+  const batches = Math.max(1, Math.ceil(distance / SWAP_BATCH_SIZE));
+  const effectiveSpeed = speed * batches;
+  await swapCubes(cubeState, i, j, scaleZ, effectiveSpeed, anime);
+};
+
+/**
  * Sift-down heapify for a max-heap using adjacent-only swaps.
  * @param {CubeState} cubeState
  * @param {number} heapSize
@@ -47,8 +94,8 @@ const swapViaAdjacent = async (cubeState, i, j, scaleZ, speed, anime) => {
  * @param {AnimeRunner} anime
  */
 const heapify = async (cubeState, heapSize, i, scaleZ, speed, anime) => {
-  const pixelGrid = cubeState.pixelGrid;
   while (true) {
+    const pixelGrid = cubeState.pixelGrid;
     const left = 2 * i + 1;
     const right = 2 * i + 2;
     let largest = i;
@@ -59,7 +106,7 @@ const heapify = async (cubeState, heapSize, i, scaleZ, speed, anime) => {
       largest = right;
     }
     if (largest !== i) {
-      await swapViaAdjacent(cubeState, i, largest, scaleZ, speed, anime);
+      await heapSwap(cubeState, i, largest, scaleZ, speed, anime);
       i = largest;
     } else {
       break;
@@ -96,8 +143,8 @@ export const heapSortFactory =
 
     // Extract elements from heap one by one.
     for (let end = n - 1; end > 0; end--) {
-      // Move current root (max) to the end via adjacent transposition.
-      await swapViaAdjacent(cubeState, 0, end, scaleZ, speed, anime);
+      // Move current root (max) to the end with heap-aware pacing.
+      await heapSwap(cubeState, 0, end, scaleZ, speed, anime);
       // Heapify reduced heap.
       await heapify(cubeState, end, 0, scaleZ, speed, anime);
     }
