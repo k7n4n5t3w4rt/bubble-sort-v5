@@ -100,6 +100,8 @@ export default (props) => {
             <option value="cocktail">Cocktail Shaker Sort</option>
             <!-- Added: Insertion Sort option to enable UI selection -->
             <option value="insertion">Insertion Sort</option>
+            <!-- Added: Binary Insertion Sort option to enable UI selection -->
+            <option value="binaryinsertion">Binary Insertion Sort</option>
             <!-- Added: Shell Sort option to enable UI selection -->
             <option value="shell">Shell Sort</option>
             <!-- Added: Heap Sort option to enable UI selection -->

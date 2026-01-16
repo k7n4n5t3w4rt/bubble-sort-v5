@@ -9,6 +9,7 @@ import bubbleSort from "./bubbleSort.js";
 import selectionSort from "./selectionSort.js";
 import quickSort from "./quickSort.js";
 import insertionSort from "./insertionSort.js"; // Added: insertion sort algorithm
+import binaryInsertionSort from "./binaryInsertionSort.js"; // Added: binary insertion sort algorithm
 import shellSort from "./shellSort.js"; // Added: shell sort algorithm
 import heapSort from "./heapSort.js"; // Added: heap sort algorithm
 import cycleSort from "./cycleSort.js"; // Added: cycle sort algorithm
@@ -88,6 +89,8 @@ export default (
           ? cocktailSort
           : algorithm === "insertion"
           ? insertionSort
+          : algorithm === "binaryinsertion"
+          ? binaryInsertionSort
           : algorithm === "shell"
           ? shellSort
           : algorithm === "heap"
