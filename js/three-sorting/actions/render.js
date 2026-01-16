@@ -17,6 +17,7 @@ import cocktailSort from "./cocktailSort.js"; // Added: cocktail shaker sort alg
 import gnomeSort from "./gnomeSort.js"; // Added: gnome sort algorithm
 import oddEvenSort from "./oddEvenSort.js"; // Added: odd-even (brick) sort algorithm
 import bitonicSort from "./bitonicSort.js"; // Added: bitonic sort algorithm
+import pancakeSort from "./pancakeSort.js"; // Added: pancake sort algorithm
 import initializeHitTestSource from "./initializeHitTestSource.js";
 import anime from "animejs/lib/anime.es.js";
 
@@ -81,6 +82,8 @@ export default (
           ? selectionSort
           : algorithm === "quick"
           ? quickSort
+          : algorithm === "pancake"
+          ? pancakeSort
           : algorithm === "cocktail"
           ? cocktailSort
           : algorithm === "insertion"

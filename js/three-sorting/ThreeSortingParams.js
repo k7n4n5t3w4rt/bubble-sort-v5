@@ -88,6 +88,8 @@ export default (props) => {
             onChange=${changeParam(dispatch, "algorithm")}
           >
             <option value="bubble">Bubble Sort</option>
+            <!-- Added: Pancake Sort option to enable UI selection -->
+            <option value="pancake">Pancake Sort</option>
             <!-- Added: Gnome Sort option to enable UI selection -->
             <option value="gnome">Gnome Sort</option>
             <!-- Added: Odd-Even (Brick) Sort option to enable UI selection -->
