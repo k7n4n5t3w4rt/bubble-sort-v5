@@ -34,12 +34,20 @@ const [styles] = createStyles({
 
 export default (props) => {
   // Set some defaults for missing props
+  /** @type {number} */
   const cols = Math.abs(parseInt(props.cols) || 5);
+  /** @type {number} */
   const rows = Math.abs(parseInt(props.rows) || 4);
+  /** @type {number} */
   const speed = Math.abs(parseFloat(props.speed) || 1);
-  const scaleX = Math.abs(Math.floor(parseFloat(props.scalex)) || 10);
-  const scaleY = Math.abs(Math.floor(parseFloat(props.scaley)) || 10);
-  const scaleZ = Math.abs(Math.floor(parseFloat(props.scalez)) || 10);
+  // Preserve decimal scale values from the URL while keeping them positive
+  // and falling back to 10 when the query param is missing, zero, or invalid.
+  /** @type {number} */
+  const scaleX = Math.abs(parseFloat(props.scalex) || 10);
+  /** @type {number} */
+  const scaleY = Math.abs(parseFloat(props.scaley) || 10);
+  /** @type {number} */
+  const scaleZ = Math.abs(parseFloat(props.scalez) || 10);
   const algorithm =
     typeof props.algorithm === "string" && props.algorithm.length > 0
       ? props.algorithm
