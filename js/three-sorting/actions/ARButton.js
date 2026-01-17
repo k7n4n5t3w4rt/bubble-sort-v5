@@ -1,4 +1,22 @@
 /**
+ * Set the idle opacity for the AR control button.
+ *
+ * When the button is in STOP AR state we want it to be
+ * barely visible when not hovered, while remaining more
+ * prominent in START AR state.
+ *
+ * @param {HTMLButtonElement} button - The AR control button element.
+ * @param {boolean} isStopState - True when the button represents STOP AR.
+ * @returns {void}
+ */
+const setIdleOpacity = (button, isStopState) => {
+  // STOP AR should be barely visible when idle; START AR keeps the
+  // previous slightly transparent appearance to remain discoverable.
+  // 0.1 is low enough to be subtle but still visible on most backgrounds.
+  button.style.opacity = isStopState ? "0.1" : "0.5";
+};
+
+/**
  * @param {string} locationString
  * @param {any} renderer
  * @param {any} [sessionInit]
@@ -16,6 +34,10 @@ const createButton = (
     existingButton.remove();
   }
   let currentSession = null;
+
+  // Tracks whether the AR button is currently in STOP AR state so we can
+  // adjust the idle opacity without affecting the START AR experience.
+  let isStopState = false;
 
   const button = document.createElement("button");
 
@@ -39,6 +61,12 @@ const createButton = (
         button.textContent = "STOP AR";
         button.style.display = "";
 
+        // When the AR session is active, mark the button as STOP AR and
+        // reduce its idle opacity so it is only barely visible when not
+        // hovered or focused.
+        isStopState = true;
+        setIdleOpacity(button, isStopState);
+
         currentSession = session;
       }
     }
@@ -58,12 +86,18 @@ const createButton = (
     button.style.width = "100px";
     button.textContent = "START AR";
 
+    // Ensure we start in START AR state with the historical idle opacity.
+    isStopState = false;
+    setIdleOpacity(button, isStopState);
+
     button.onmouseenter = function () {
       button.style.opacity = "1.0";
     };
 
     button.onmouseleave = function () {
-      button.style.opacity = "0.5";
+      // On mouse leave, restore the appropriate idle opacity based on
+      // whether the button currently represents START AR or STOP AR.
+      setIdleOpacity(button, isStopState);
     };
 
     button.onclick = function () {
@@ -119,6 +153,9 @@ const createButton = (
     button.style.display = "none";
 
     stylizeElement(button);
+
+    // Default to the START AR idle opacity before we know the state.
+    setIdleOpacity(button, isStopState);
 
     // $FlowFixMe
     navigator.xr
