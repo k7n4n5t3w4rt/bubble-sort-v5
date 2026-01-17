@@ -108,7 +108,7 @@ const threeSortingPresets /*: Array<ThreeSortingPreset> */ = [
     id: "selection",
     label: "Selection",
     query:
-      "?cols=19&rows=36&speed=5&scalex=6.3&scaley=11.8&scalez=9.9&algorithm=selection&diffuseSwapsPerTick=20&diffuseNeighborRadius=1&unsortPauseMs=20000",
+      "?cols=19&rows=36&speed=5&scalex=6.3&scaley=11.8&scalez=9.9&algorithm=selection&diffuseSwapsPerTick=280&diffuseNeighborRadius=2&unsortPauseMs=20000",
   },
 ];
 
