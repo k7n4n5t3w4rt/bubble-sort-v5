@@ -1,15 +1,18 @@
 // --------------------------------------------------
-// Cycle Sort (adjacent-swaps variant for visualisation)
+// Cycle Sort (streamlined direct-swap variant)
 // --------------------------------------------------
 /**
- * This implementation preserves the app's visual constraints:
- * - Sets `cubeState.active = false` before sorting (prevents re-entry).
- * - Uses animated adjacent swaps via `swapCubes(...)` for all moves.
- * - Calls `scheduleRepeat(cubeState)` after completion.
+ * Streamlined Cycle Sort implementation for the 3D visualiser.
  *
- * It emulates Cycle Sort's placement logic, but moves items to their
- * target positions using a series of adjacent swaps. This keeps the
- * animation consistent with other algorithms in the project.
+ * This version keeps the app's behavioural constraints:
+ * - Sets `cubeState.active = false` before sorting (prevents re-entry).
+ * - Uses the shared `swapCubes(...)` animation primitive for all moves.
+ * - Calls `scheduleRepeat(cubeState)` after completion to trigger reruns.
+ *
+ * Compared to the previous adjacent-swap implementation, this version:
+ * - Uses a textbook Cycle Sort structure with direct swaps between indices.
+ * - Avoids gratuitous chains of adjacent swaps, reducing visual noise.
+ * - Still respects duplicates by skipping over equal values when placing.
  */
 
 // --------------------------------------------------
@@ -25,13 +28,13 @@ import swapCubes from "./swapCubes.js";
 import scheduleRepeat from "./scheduleRepeat.js";
 
 /**
- * Cycle Sort using adjacent swaps for visualisation consistency.
+ * Cycle Sort using direct index swaps for visualisation consistency.
  *
- * @param {CubeState} cubeState
- * @param {number} speed
- * @param {number} scaleZ
- * @param {AnimeRunner} anime
- * @returns {Promise<CubeState>}
+ * @param {CubeState} cubeState - The current 3D cube state to be sorted.
+ * @param {number} speed - The animation speed multiplier for swaps.
+ * @param {number} scaleZ - The Z-scale used when animating swaps.
+ * @param {AnimeRunner} anime - The Anime.js runner instance.
+ * @returns {Promise<CubeState>} A promise resolving to the sorted state.
  */
 /**
  * Factory for cycleSort with injected scheduler.
@@ -48,9 +51,11 @@ export const cycleSortFactory =
     const n = pixelGrid.length;
 
     /**
-     * Perform an adjacent animated swap and await completion to maintain order.
-     * @param {number} i
-     * @param {number} j
+     * Perform an animated swap between two indices and await completion
+     * to keep the visualisation and algorithmic steps in lock-step.
+     *
+     * @param {number} i - First index to swap.
+     * @param {number} j - Second index to swap.
      */
     const swap = async (i, j) => {
       if (i === j) return;
@@ -58,101 +63,100 @@ export const cycleSortFactory =
     };
 
     // --------------------------------------------------
-    // Stable target index helpers (prevents infinite loops with duplicates)
+    // Core Cycle Sort: compute permutation, then replay swaps
     // --------------------------------------------------
-    /**
-     * Count items strictly less than `value`.
-     * @param {number} value
-     * @returns {number}
-     */
-    const countLess = (value) => {
-      let c = 0;
-      for (let i = 0; i < n; i++) {
-        if (pixelGrid[i].value < value) c++;
-      }
-      return c;
-    };
+    // To keep the implementation simple and robust while still behaving
+    // like Cycle Sort, we:
+    // 1. Take a stable snapshot of values and their original indices.
+    // 2. Compute the sorted target order of those values.
+    // 3. Derive the permutation that maps each original index to its
+    //    final index in the sorted order.
+    // 4. Decompose that permutation into disjoint cycles and emit the
+    //    minimal set of swaps needed to realise them.
+    // 5. Replay those swaps against the live `pixelGrid` using
+    //    the animated `swap(...)` helper.
 
     /**
-     * Count items equal to `value` that appear before `atIndex`.
-     * @param {number} value
-     * @param {number} atIndex
-     * @returns {number}
+     * Snapshot of the current values and their indices, used only for
+     * computing the cycle decomposition. The live pixelGrid is mutated
+     * later when we replay swaps via `swap(...)`.
+     * @type {{ value: number; index: number }[]}
      */
-    const countEqualBefore = (value, atIndex) => {
-      let c = 0;
-      for (let i = 0; i < atIndex; i++) {
-        if (pixelGrid[i].value === value) c++;
-      }
-      return c;
-    };
+    const items = pixelGrid.map((cube, index) => ({
+      value: cube.value,
+      index,
+    }));
 
     /**
-     * Count items equal to `value` in the entire grid.
-     * @param {number} value
-     * @returns {number}
+     * Stable sorted copy of items: primary key is `value`, secondary key
+     * is original index to keep equal values in their original order.
+     * @type {{ value: number; index: number }[]}
      */
-    const countEqualTotal = (value) => {
-      let c = 0;
-      for (let i = 0; i < n; i++) {
-        if (pixelGrid[i].value === value) c++;
+    const sorted = [...items].sort((a, b) => {
+      if (a.value < b.value) return -1;
+      if (a.value > b.value) return 1;
+      // Tie-break by original index for stability when values are equal.
+      if (a.index < b.index) return -1;
+      if (a.index > b.index) return 1;
+      return 0;
+    });
+
+    /**
+     * Permutation: for each original index, the position it must occupy
+     * in the stably sorted order.
+     * @type {number[]}
+     */
+    const targetPos = new Array(n);
+    for (let sortedPos = 0; sortedPos < n; sortedPos++) {
+      const origIndex = sorted[sortedPos].index;
+      targetPos[origIndex] = sortedPos;
+    }
+
+    /**
+     * Track which indices have already been included in a cycle.
+     * @type {boolean[]}
+     */
+    const visited = new Array(n).fill(false);
+
+    /**
+     * Collected swap operations representing the cycle decomposition.
+     * Each entry describes a direct index swap to apply to `pixelGrid`.
+     * @type {{ from: number; to: number }[]}
+     */
+    const swaps = [];
+
+    // Discover cycles in the permutation and record minimal swaps to
+    // realise each cycle using a fixed pivot index.
+    for (let i = 0; i < n; i++) {
+      if (visited[i] || targetPos[i] === i) {
+        continue;
       }
-      return c;
-    };
 
-    // Helper to compute stable target index for a given value at index.
-    const targetIndexForValue = (value, atIndex) =>
-      countLess(value) + countEqualBefore(value, atIndex);
+      /** @type {number[]} */
+      const cycle = [];
+      let j = i;
 
-    // For each cycle start, bring the correct item into place using swaps.
-    for (let cycleStart = 0; cycleStart < n - 1; cycleStart++) {
-      if (
-        targetIndexForValue(pixelGrid[cycleStart].value, cycleStart) !==
-        cycleStart
-      ) {
-        // Determine which value must occupy `cycleStart` by stable ordering:
-        // For value `v`, its stable block is from `start = countLess(v)`
-        // to `end = start + countEqualTotal(v) - 1`. The value whose block
-        // contains `cycleStart` is the one to place.
-
-        let valueToPlace = null;
-        let placeStart = 0;
-        for (let i = 0; i < n; i++) {
-          const v = pixelGrid[i].value;
-          const start = countLess(v);
-          const total = countEqualTotal(v);
-          const end = start + total - 1;
-          if (cycleStart >= start && cycleStart <= end) {
-            valueToPlace = v;
-            placeStart = start;
-            break;
-          }
-        }
-
-        if (valueToPlace != null) {
-          const ordinal = cycleStart - placeStart;
-          let k = -1;
-          for (let i = 0; i < n; i++) {
-            if (
-              pixelGrid[i].value === valueToPlace &&
-              countEqualBefore(valueToPlace, i) === ordinal
-            ) {
-              k = i;
-              break;
-            }
-          }
-
-          if (k > cycleStart) {
-            for (let j = k; j > cycleStart; j--) {
-              await swap(j - 1, j);
-            }
-          } else if (k >= 0 && k < cycleStart) {
-            for (let j = k; j < cycleStart; j++) {
-              await swap(j, j + 1);
-            }
-          }
-        }
+      while (!visited[j]) {
+        visited[j] = true;
+        cycle.push(j);
+        j = targetPos[j];
       }
+
+      if (cycle.length <= 1) {
+        continue;
+      }
+
+      const pivot = cycle[0];
+      for (let k = 1; k < cycle.length; k++) {
+        swaps.push({ from: pivot, to: cycle[k] });
+      }
+    }
+
+    // Replay the computed swaps against the live pixelGrid, using the
+    // shared animated swap helper to keep the visualisation consistent
+    // with the other algorithms.
+    for (const op of swaps) {
+      await swap(op.from, op.to);
     }
 
     scheduler(cubeState);
