@@ -16,6 +16,102 @@ import { rawStyles, createStyles, setSeed } from "simplestyle-js";
 
 setSeed(seedString("threebubblesortparams"));
 
+/**
+ * Predefined 3D sorting presets, each expressed as a full
+ * query string that can be applied via window.location.search.
+ *
+ * @typedef {Object} ThreeSortingPreset
+ * @property {string} id Stable identifier for the preset.
+ * @property {string} label Human-readable label shown in the UI.
+ * @property {string} query Full query string (starting with "?").
+ */
+const threeSortingPresets /*: Array<ThreeSortingPreset> */ = [
+  {
+    id: "bitonic",
+    label: "Bitonic",
+    query:
+      "?cols=6&rows=11&speed=5&scalex=1.2&scaley=2.3&scalez=1.9&algorithm=bitonic&diffuseSwapsPerTick=20&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+  {
+    id: "pancake",
+    label: "Pancake",
+    query:
+      "?cols=6&rows=11&speed=5&scalex=6.9&scaley=13.4&scalez=10.9&algorithm=pancake&diffuseSwapsPerTick=10&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+  {
+    id: "oddeven",
+    label: "Odd-Even",
+    query:
+      "?cols=6&rows=13&speed=5&scalex=2.4&scaley=3.9&scalez=3.8&algorithm=oddeven&diffuseSwapsPerTick=10&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+  {
+    id: "insertion",
+    label: "Insertion",
+    query:
+      "?cols=6&rows=11&speed=5&scalex=40.8&scaley=78.5&scalez=64.0&algorithm=insertion&diffuseSwapsPerTick=10&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+  {
+    id: "bubble",
+    label: "Bubble",
+    query:
+      "?cols=7&rows=12&speed=5&scalex=4.2&scaley=8.6&scalez=6.5&algorithm=bubble&diffuseSwapsPerTick=20&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+  {
+    id: "cocktail",
+    label: "Cocktail",
+    query:
+      "?cols=7&rows=12&speed=5&scalex=1.4&scaley=3.0&scalez=2.3&algorithm=cocktail&diffuseSwapsPerTick=10&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+  {
+    id: "binaryinsertion",
+    label: "Binary Insertion",
+    query:
+      "?cols=7&rows=12&speed=5&scalex=2.9&scaley=6.0&scalez=4.6&algorithm=binaryinsertion&diffuseSwapsPerTick=20&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+  {
+    id: "gnome",
+    label: "Gnome",
+    query:
+      "?cols=7&rows=12&speed=5&scalex=8.5&scaley=17.5&scalez=13.3&algorithm=gnome&diffuseSwapsPerTick=20&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+  {
+    id: "heap",
+    label: "Heap",
+    query:
+      "?cols=5&rows=10&speed=5&scalex=69.7&scaley=123.1&scalez=109.4&algorithm=heap&diffuseSwapsPerTick=20&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+  {
+    id: "shell",
+    label: "Shell",
+    query:
+      "?cols=11&rows=22&speed=5&scalex=15.6&scaley=27.6&scalez=24.5&algorithm=shell&diffuseSwapsPerTick=90&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+  {
+    id: "quick",
+    label: "Quick",
+    query:
+      "?cols=11&rows=19&speed=5&scalex=7.7&scaley=15.7&scalez=12.1&algorithm=quick&diffuseSwapsPerTick=70&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+  {
+    id: "comb",
+    label: "Comb",
+    query:
+      "?cols=10&rows=18&speed=5&scalex=70.8&scaley=138.9&scalez=111.1&algorithm=comb&diffuseSwapsPerTick=20&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+  {
+    id: "cycle",
+    label: "Cycle",
+    query:
+      "?cols=20&rows=35&speed=5&scalex=24.8&scaley=50.1&scalez=39.0&algorithm=cycle&diffuseSwapsPerTick=200&diffuseNeighborRadius=2&unsortPauseMs=20000",
+  },
+  {
+    id: "selection",
+    label: "Selection",
+    query:
+      "?cols=19&rows=36&speed=5&scalex=6.3&scaley=11.8&scalez=9.9&algorithm=selection&diffuseSwapsPerTick=20&diffuseNeighborRadius=1&unsortPauseMs=20000",
+  },
+];
+
 const [styles] = createStyles({
   paramsContainer: {
     boxSizing: "border-box",
@@ -76,9 +172,43 @@ export default (props) => {
     });
   };
 
+  /**
+   * Handles selection of a 3D sorting preset by reloading the page
+   * with the preset's query string applied. This allows the existing
+   * URL → state initialisation logic to configure the scene.
+   *
+   * @param {Event} event Change event from the preset <select>.
+   * @returns {void}
+   */
+  const handlePresetChange = (event) => {
+    const target = /** @type {HTMLSelectElement} */ (event.target);
+    const selectedQuery = target.value;
+
+    // When the neutral "Custom" option is selected, do nothing.
+    if (!selectedQuery) {
+      return;
+    }
+
+    // Assign the query string directly to trigger a full reload
+    // with the preset parameters encoded in the URL.
+    // This mirrors the AR-button pattern where a full URL
+    // (including query) is used to re-enter the experience.
+    window.location.search = selectedQuery;
+  };
+
   return html`
     <div id="params-container" className="${styles.paramsContainer}">
       <fieldset>
+        <div>
+          <label for="presets">Preset:</label>
+          <select id="preset" name="preset" onChange=${handlePresetChange}>
+            <option value="">Custom</option>
+            ${threeSortingPresets.map(
+              (preset) =>
+                html`<option value="${preset.query}">${preset.label}</option>`,
+            )}
+          </select>
+        </div>
         <div>
           <label for="algorithm">Algorithm:</label>
           <select
