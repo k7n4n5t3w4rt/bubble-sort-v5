@@ -102,7 +102,7 @@ const threeSortingPresets /*: Array<ThreeSortingPreset> */ = [
     id: "cycle",
     label: "Cycle",
     query:
-      "?cols=20&rows=35&speed=5&scalex=24.8&scaley=50.1&scalez=39.0&algorithm=cycle&diffuseSwapsPerTick=200&diffuseNeighborRadius=2&unsortPauseMs=20000",
+      "?cols=20&rows=35&speed=5&scalex=24.8&scaley=50.1&scalez=39.0&algorithm=cycle&diffuseSwapsPerTick=280&diffuseNeighborRadius=2&unsortPauseMs=20000",
   },
   {
     id: "selection",
