@@ -1,10 +1,10 @@
 {
-  "name": "flow-attractor",
+  "name": "when-we-were-only-several-hundred-thousand-years-old",
   "description": "Visualising flow of work.",
-  "version": "0.39.4",
+  "version": "0.39.5",
   "author": "Kynan Stewart Hughes",
   "bugs": {
-    "url": "https://github.com/k7n4n5t3w4rt/workflow/issues"
+    "url": "https://github.com/k7n4n5t3w4rt/when-we-were-only-several-hundred-thousand-years-old/issues"
   },
   "dependencies": {
     "@tensorflow/tfjs": "^4.22.0",
@@ -51,8 +51,9 @@
     "prettier:write": "prettier --write \"js/**/*.{js,jsx}\"",
     "lint": "eslint js --ext .js --max-warnings 0",
     "start": "npm run dev",
-    "test": "npm run lint && npm run testy | faucet && npm run cypress:run",
-    "testy": "export RUN_CONTEXT='testy'; node --no-warnings server/testyrunner.js",
+    "test": "npm run lint && npm run testyrunner | faucet && npm run cypress:run",
+    "testy": "npm run testyrunner | faucet",
+    "testyrunner": "export RUN_CONTEXT='testy'; node --no-warnings server/testyrunner.js",
     "testy-debug": "export RUN_CONTEXT='testy'; export TESTY_DEBUG=1; node --no-warnings server/testyrunner.js",
     "typecheck": "node ./node_modules/typescript/bin/tsc -p tsconfig.json"
   },

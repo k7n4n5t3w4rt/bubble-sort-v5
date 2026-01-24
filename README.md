@@ -1,11 +1,14 @@
-# Algorithms — AR Sorting Sculpture
+# when-we-were-only-several-hundred-thousand-years-old
+
+_Algorithms — AR Sorting Sculpture_
 
 An artwork that turns sorting algorithms into site-specific augmented-reality sculptures. You tune parameters in normal 3D mode until the motion and form feel right, then drop the algorithm into the world via AR, record the run in public space, and fold the captures into larger composite works (e.g., Instagram series).
 
 ## What it does
-- Visualises Bubble Sort, Insertion Sort, Selection Sort, Quick Sort, and Shell Sort as a grid of cubes that unsorts then sorts.
+- Visualises Bubble Sort, Insertion Sort, Selection Sort, Quick Sort, and a bunch of others as a grid of cubes that unsorts then sorts.
 - Two modes: normal 3D for rapid iteration; AR for in-situ placement and capture.
 - Parameter-driven performances: grid size, animation speed, physical scale, and unsort/diffusion behaviour to sculpt the motion before recording.
+- Just works on modern mobile browsers with WebXR support (Chrome/Edge on Android; Safari on iOS with WebXR Polyfill).  
 
 ## How the app is wired
 - Preact shell: `js/main.js` mounts `js/App.js`, which wraps routes in `AppProvider` (context/state).
@@ -50,5 +53,34 @@ An artwork that turns sorting algorithms into site-specific augmented-reality sc
 
 ## Future extensions
 - Additional algorithms (e.g., Selection, Insertion) alongside Bubble Sort.
-- Presets for “performance-ready” parameter sets tuned for AR scale/tempo.
+- Presets for "performance-ready" parameter sets tuned for AR scale/tempo.
 - Richer logging/telemetry for field captures (context loss, frame rates).
+
+## Agent Development Guidelines
+This section summarizes instructions from agent-specific .md files (e.g., for Copilot, Claude, Gemini, Cursor) to guide AI-assisted development.
+
+### General Coding Practices
+- Make only the specific changes requested; explain how existing code works before modifying.
+- Propose changes incrementally with clear reasoning; wait for approval before implementing.
+- Maintain identical functionality and appearance unless explicitly asked to change them.
+- Add descriptive comments and JSDoc/Flow type annotations to new/modified code.
+- Increment the version number in package.json and index.html title when changing code.
+- Run `npm run lint` after changes to ensure code quality.
+- Ask clarifying questions if unsure; outline approaches for complex changes.
+
+### TDD Approach
+- Prefer Kent Beck style TDD (Red → Green → Refactor) for testable code (pure functions, reducers, calculations, state transitions).
+- For new functions/behaviors, ask "Test first?"; if yes, start with minimal failing test.
+- Use Absolute Priority Premise: focus on most important failing test.
+- For new behaviors, create a plan using the milestone template in `server/tdd_milestone_template.md`, executing one milestone at a time with review stops.
+
+### Testing Tools
+- Unit tests: Use `npm run testy` with files in `testies/*.testy.js`.
+- E2E tests: Use `npm run cypress:run` or `npm run cypress:open` for integration tests.
+- Full test suite: `npm test` (runs both testy and Cypress).
+
+### Project-Specific Instructions
+- Architecture: Preact + Three.js app with global state via Context/Reducer; ES modules for no-build dev; custom SSR in `server/`.
+- Commands: `npm start` for dev server; `npm run esinstall` for dependencies; `npm run flow` for type checking.
+- For Three.js/rendering changes hard to unit-test, use fast smoke checks or Cypress E2E instead.
+- Follow mob programming context with priority on minimal, intention-revealing tests.
